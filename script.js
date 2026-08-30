@@ -1,13 +1,13 @@
-function updateClock() {
-    const clockElement = document.getElementById('clock');
-    if (!clockElement) return;
+function stampPrintTime() {
+    const el = document.getElementById('printed-at');
+    if (!el) return;
 
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
 
-    clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+    el.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 function fitHeaderBox() {
@@ -28,9 +28,6 @@ function fitHeaderBox() {
     frame.style.height = `${designHeight * scale}px`;
 }
 
-updateClock();
-let clockTimer = setInterval(updateClock, 1000);
-
 const headerFrame = document.querySelector('.header-frame');
 if (headerFrame && 'ResizeObserver' in window) {
     new ResizeObserver(fitHeaderBox).observe(headerFrame);
@@ -43,16 +40,6 @@ if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(fitHeaderBox);
 }
 fitHeaderBox();
-
-// Aba oculta não precisa de relógio rodando
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        clearInterval(clockTimer);
-    } else {
-        updateClock();
-        clockTimer = setInterval(updateClock, 1000);
-    }
-});
 
 function startTypewriter() {
     const el = document.getElementById('typewriter');
@@ -110,8 +97,6 @@ function startTypewriter() {
 
     loop();
 }
-
-startTypewriter();
 
 /* ---------- Som de impressora (sintetizado com Web Audio) ---------- */
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -196,9 +181,9 @@ function buildPrinterNoise(ctx, seconds) {
 }
 
 function playPrinterSound(ms) {
-    if (REDUCE_MOTION || ms < 200) return;
+    if (REDUCE_MOTION || ms < 200) return false;
     const ctx = getAudioCtx();
-    if (!ctx) return;
+    if (!ctx) return false;
 
     const deadline = performance.now() + ms;
     const schedule = () => {
@@ -209,14 +194,40 @@ function playPrinterSound(ms) {
 
     if (ctx.state === 'running') {
         schedule();
-    } else {
-        // Navegador só libera áudio após interação; se liberar a tempo, toca o resto
-        ctx.resume().then(schedule).catch(() => {});
+        return true;
     }
+
+    ctx.resume().then(schedule).catch(() => {});
+    return ctx.state === 'running';
 }
 
-// Som da impressão inicial (mesma duração e atraso da animação do recibo)
-setTimeout(() => playPrinterSound(2800), 400);
+/* ---------- Liga/desliga: o site imprime a partir do clique ---------- */
+const PRINT_DELAY_MS = 400; // mesmo atraso da animação do recibo
+const PRINT_SOUND_MS = 2800;
+let siteIsOn = false;
+
+function bootSite() {
+    if (siteIsOn) return;
+    siteIsOn = true;
+
+    // O clique é o gesto que libera o áudio no navegador
+    const ctx = getAudioCtx();
+    if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+
+    document.body.classList.add('is-on');
+    stampPrintTime();
+    fitHeaderBox();
+    startTypewriter();
+    setTimeout(() => playPrinterSound(PRINT_SOUND_MS), PRINT_DELAY_MS);
+
+    const bootScreen = document.getElementById('boot-screen');
+    if (!bootScreen) return;
+    bootScreen.classList.add('is-off');
+    bootScreen.addEventListener('transitionend', () => bootScreen.remove(), { once: true });
+    setTimeout(() => bootScreen.remove(), 900);
+}
+
+document.getElementById('power-button')?.addEventListener('click', bootSite);
 
 /* ---------- Papéis impressos (Skills, About me) ---------- */
 let paperLayer = 30;

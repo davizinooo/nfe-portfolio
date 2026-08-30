@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Tela de boot: o site só imprime depois do liga/desliga -->
+    <div id="boot-screen" class="boot-screen">
+        <button id="power-button" class="power-button" type="button" aria-label="Ligar">
+            <span class="power-glyph" aria-hidden="true">&#9211;</span>
+            
+        </button>
+    </div>
+    <noscript>
+        <style>
+            .boot-screen {
+                display: none;
+            }
+        </style>
+    </noscript>
+
     <div class="container">
         <!-- Metade Esquerda com todo o conteúdo -->
         <div class="site-half left-half">
@@ -17,7 +32,7 @@
                         <div class="divider">----------------------------------------------------------------------------------------------------</div>
                         <div class="header-info">
                             <p class="header-row">
-                                <span class="heavy logo-name">Davi Rodrigues™</span>
+                                <span class="heavy logo-name">Davi Rodrigues</span>
                                 <span class="heavy typewriter-dev">
                                     <span class="typewriter-sizer" aria-hidden="true">creative</span>
                                     <span class="typewriter-live">
@@ -35,10 +50,10 @@
                             </p>
                         </div>
                         <div class="header-links">
-                            <a href="#" class="link-highlight">Email</a>, <a href="#" class="link-highlight">In</a>, <a href="#" class="link-highlight">GitHub</a>, <a href="#" class="link-highlight">CV</a> 
+                            <a href="#" class="link-highlight">Email</a>, <a href="#" class="link-highlight">In</a>, <a href="#" class="link-highlight">GitHub</a>, <a href="#" class="link-highlight">CV</a>
                         </div>
-                        <div class="publish-time">
-                            Published: &nbsp;&nbsp;<span id="clock">20:30:30</span>
+                        <div class="print-time">
+                            Printed: <span id="printed-at">00:00:00</span>
                         </div>
                         <div class="divider">----------------------------------------------------------------------------------------------------</div>
                     </header>
@@ -84,10 +99,10 @@
                 <div class="divider">----------------------------------------------------------------------------------------------------</div>
                 <div class="footer-specs">
                     <div class="spec-row">
-                        <span>Scale</span><span>to</span><span>Fit Width</span>
+                        <span>Project Type:</span><span>Portifolio Web</span>
                     </div>
                     <div class="spec-arrows">
-                        <span>←</span><span>→</span>
+                        <span>Stacks</span><span>→</span>
                     </div>
                     <div class="spec-details">
                         <div class="spec-line">
@@ -127,15 +142,16 @@
         <button class="paper-close" type="button" data-close="skills-paper" aria-label="Fechar skills">X</button>
         <div class="paper-content">
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
-            <p class="paper-title">SKILLS_</p>
+            <p class="paper-title">SKILLS<span class="title-cursor" aria-hidden="true">_</span></p>
             <ul class="skills-list">
-                <li><span>Python</span><span class="skill-bar">[#########-]</span></li>
-                <li><span>JavaScript</span><span class="skill-bar">[########--]</span></li>
-                <li><span>HTML / CSS</span><span class="skill-bar">[#########-]</span></li>
-                <li><span>Node.js</span><span class="skill-bar">[#######---]</span></li>
+                <li><span>AI / LLMs</span><span class="skill-bar">[########--]</span></li>
+                <li><span>Python</span><span class="skill-bar">[######----]</span></li>
+                <li><span>JavaScript</span><span class="skill-bar">[#######---]</span></li>
+                <li><span>HTML / CSS</span><span class="skill-bar">[#######---]</span></li>
+                <li><span>SQL</span><span class="skill-bar">[######----]</span></li>
                 <li><span>Git / GitHub</span><span class="skill-bar">[########--]</span></li>
-                <li><span>AI / LLMs</span><span class="skill-bar">[#########-]</span></li>
-                <li><span>Automation</span><span class="skill-bar">[########--]</span></li>
+                <li><span>Java</span><span class="skill-bar">[######----]</span></li>
+                <li><span>Pytorch</span><span class="skill-bar">[######----]</span></li>
             </ul>
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
         </div>
@@ -146,14 +162,14 @@
         <button class="paper-close" type="button" data-close="about-paper" aria-label="Fechar about me">X</button>
         <div class="paper-content">
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
-            <p class="paper-title">ABOUT_ME_</p>
+            <p class="paper-title">ABOUT ME<span class="title-cursor" aria-hidden="true">_</span></p>
             <figure class="about-photo placeholder-img">
                 <span class="img-label">Foto — placeholder</span>
             </figure>
             <div class="about-text">
-                <p>Estudante de Ciência da Computação na PUC-Minas, em Belo Horizonte.</p>
-                <p>Trabalho com desenvolvimento de software, automação e aplicações com IA.</p>
-                <p>Interesse em sistemas, ferramentas de linha de comando e interfaces com identidade própria.</p>
+                <p>Computer Science student at PUC Minas with experience in software automation, digital projects, and AI-assisted development. </p>
+                <p>Experience with Python and JavaScript on automation, data processing, NFT metadata, blockchain tools, and generative AI workflows. My previous experience also includes market analysis, risk assessment, digital marketing, and working with international teams.</p>
+                <p>My recent interests lies on software development, building practical projects and strengthening my skills in algorithms, data structures, Python, Java, and AI-assisted development.</p>
             </div>
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
         </div>
