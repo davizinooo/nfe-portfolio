@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Fragment+Mono&display=swap');
 
 :root {
-    --bg-color: #ffffff;
+    --bg-color: #e6e6e4;
+    --paper-color: #ffffff;
+    --paper-tilt: -1.2deg;
     --text-color: #4a4a4a;
     --highlight-bg: #ee0606;
     --highlight-text: #ffffff;
@@ -63,10 +65,46 @@ body {
     max-width: 40%;
     position: relative;
     z-index: 1;
-    background-color: #ffffff;
-    box-shadow:
-        10px 0 24px rgba(0, 0, 0, 0.1),
-        3px 0 8px rgba(0, 0, 0, 0.05);
+    margin-left: 22px;
+    margin-bottom: 40px;
+    background-color: var(--paper-color);
+    /* Sombra via filter para acompanhar a borda rasgada do ::after */
+    filter: drop-shadow(8px 10px 22px rgba(0, 0, 0, 0.22))
+        drop-shadow(2px 3px 6px rgba(0, 0, 0, 0.12));
+    transform: rotate(var(--paper-tilt));
+    transform-origin: top center;
+    animation: print-receipt 3.2s steps(42, end) 0.4s backwards;
+    will-change: transform;
+}
+
+/* Borda inferior rasgada, como recibo arrancado da impressora */
+.left-half::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background:
+        linear-gradient(-45deg, var(--paper-color) 10px, transparent 0),
+        linear-gradient(45deg, var(--paper-color) 10px, transparent 0);
+    background-repeat: repeat-x;
+    background-size: 20px 20px;
+}
+
+@keyframes print-receipt {
+    from {
+        transform: translateY(-104%) rotate(var(--paper-tilt));
+    }
+    to {
+        transform: translateY(0) rotate(var(--paper-tilt));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .left-half {
+        animation: none;
+    }
 }
 
 .right-half {
@@ -466,8 +504,13 @@ a.link-highlight:hover {
 
 /* Tablet / janela estreita: conteúdo ocupa a tela, metade vazia some */
 @media (max-width: 1024px) {
+    :root {
+        --paper-tilt: -0.5deg;
+    }
+
     .container {
         flex-direction: column;
+        padding-top: 10px;
     }
 
     .left-half,
@@ -475,6 +518,11 @@ a.link-highlight:hover {
         flex: 0 0 100%;
         width: 100%;
         max-width: 100%;
+    }
+
+    .left-half {
+        width: calc(100% - 16px);
+        margin: 0 auto 32px;
     }
 
     .right-half {
