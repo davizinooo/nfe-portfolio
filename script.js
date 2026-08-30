@@ -29,18 +29,30 @@ function fitHeaderBox() {
 }
 
 updateClock();
-setInterval(updateClock, 1000);
+let clockTimer = setInterval(updateClock, 1000);
 
 const headerFrame = document.querySelector('.header-frame');
 if (headerFrame && 'ResizeObserver' in window) {
     new ResizeObserver(fitHeaderBox).observe(headerFrame);
+} else {
+    // Sem ResizeObserver o resize é o único gatilho; com ele seria trabalho duplicado
+    window.addEventListener('resize', fitHeaderBox);
 }
 
-window.addEventListener('resize', fitHeaderBox);
 if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(fitHeaderBox);
 }
 fitHeaderBox();
+
+// Aba oculta não precisa de relógio rodando
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        clearInterval(clockTimer);
+    } else {
+        updateClock();
+        clockTimer = setInterval(updateClock, 1000);
+    }
+});
 
 function startTypewriter() {
     const el = document.getElementById('typewriter');
@@ -59,6 +71,18 @@ function startTypewriter() {
 
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    // Enquanto a aba está oculta a animação não avança: economiza CPU e bateria
+    const whileVisible = () =>
+        document.hidden
+            ? new Promise((resolve) => {
+                  const onShow = () => {
+                      document.removeEventListener('visibilitychange', onShow);
+                      resolve();
+                  };
+                  document.addEventListener('visibilitychange', onShow);
+              })
+            : Promise.resolve();
+
     async function typeWord(word) {
         for (let i = 1; i <= word.length; i += 1) {
             el.textContent = word.slice(0, i);
@@ -75,6 +99,7 @@ function startTypewriter() {
 
     async function loop() {
         for (let i = 0; i < words.length; i += 1) {
+            await whileVisible();
             await typeWord(words[i]);
             await wait(pauseMs);
             await deleteWord();
@@ -100,18 +125,25 @@ function getAudioCtx() {
     return audioCtx;
 }
 
-function buildPrinterNoise(ctx, seconds) {
-    const now = ctx.currentTime;
+let noiseBuffer = null;
 
-    // Ruído branco filtrado: o "chiado" da cabeça térmica
+// Ruído branco filtrado: o "chiado" da cabeça térmica. Gerado uma vez e reaproveitado.
+function getNoiseBuffer(ctx) {
+    if (noiseBuffer) return noiseBuffer;
     const bufferSize = Math.ceil(ctx.sampleRate * 0.5);
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+    noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i += 1) {
         data[i] = Math.random() * 2 - 1;
     }
+    return noiseBuffer;
+}
+
+function buildPrinterNoise(ctx, seconds) {
+    const now = ctx.currentTime;
+
     const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = getNoiseBuffer(ctx);
     noise.loop = true;
 
     const band = ctx.createBiquadFilter();
