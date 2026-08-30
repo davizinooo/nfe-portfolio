@@ -225,10 +225,15 @@ function paperTrigger(id) {
     return document.querySelector(`.paper-scrap[data-paper="${id}"]`);
 }
 
-function openPaper(paper) {
+function bringPaperForward(paper) {
     if (!paper) return;
     paperLayer += 1;
     paper.style.zIndex = paperLayer;
+}
+
+function openPaper(paper) {
+    if (!paper) return;
+    bringPaperForward(paper);
     paper.classList.remove('is-peek');
     paper.classList.add('is-open');
     paper.setAttribute('aria-hidden', 'false');
@@ -247,7 +252,13 @@ function peekPaper(paper) {
 
 document.querySelectorAll('.paper-scrap[data-paper]').forEach((btn) => {
     btn.addEventListener('click', () => {
-        openPaper(document.getElementById(btn.dataset.paper));
+        const paper = document.getElementById(btn.dataset.paper);
+        if (!paper) return;
+        if (paper.classList.contains('is-open')) {
+            peekPaper(paper);
+        } else {
+            openPaper(paper);
+        }
     });
 });
 
@@ -260,6 +271,17 @@ document.querySelectorAll('.paper-close[data-close]').forEach((btn) => {
 
 document.querySelectorAll('.print-paper').forEach((paper) => {
     paper.addEventListener('click', () => {
-        if (paper.classList.contains('is-peek')) openPaper(paper);
+        if (paper.classList.contains('is-peek')) {
+            openPaper(paper);
+            return;
+        }
+        if (!paper.classList.contains('is-open')) return;
+
+        const isFront = Number(paper.style.zIndex) === paperLayer;
+        if (isFront) {
+            peekPaper(paper);
+        } else {
+            bringPaperForward(paper);
+        }
     });
 });
