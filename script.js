@@ -87,3 +87,147 @@ function startTypewriter() {
 }
 
 startTypewriter();
+
+/* ---------- Som de impressora (sintetizado com Web Audio) ---------- */
+const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (audioCtx) return audioCtx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    audioCtx = new AC();
+    return audioCtx;
+}
+
+function buildPrinterNoise(ctx, seconds) {
+    const now = ctx.currentTime;
+
+    // Ruído branco filtrado: o "chiado" da cabeça térmica
+    const bufferSize = Math.ceil(ctx.sampleRate * 0.5);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i += 1) {
+        data[i] = Math.random() * 2 - 1;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 2100;
+    band.Q.value = 0.7;
+
+    // Pulso rápido no ganho: linhas sendo impressas
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.05;
+    const lfo = ctx.createOscillator();
+    lfo.type = 'square';
+    lfo.frequency.value = 24;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.04;
+    lfo.connect(lfoGain);
+    lfoGain.connect(noiseGain.gain);
+
+    // Zumbido grave do motor de arrasto
+    const motor = ctx.createOscillator();
+    motor.type = 'sawtooth';
+    motor.frequency.value = 85;
+    const motorFilter = ctx.createBiquadFilter();
+    motorFilter.type = 'lowpass';
+    motorFilter.frequency.value = 320;
+    const motorGain = ctx.createGain();
+    motorGain.gain.value = 0.025;
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(1, now + 0.08);
+    master.gain.setValueAtTime(1, now + Math.max(0.1, seconds - 0.18));
+    master.gain.exponentialRampToValueAtTime(0.0001, now + seconds);
+
+    noise.connect(band);
+    band.connect(noiseGain);
+    noiseGain.connect(master);
+    motor.connect(motorFilter);
+    motorFilter.connect(motorGain);
+    motorGain.connect(master);
+    master.connect(ctx.destination);
+
+    const stopAt = now + seconds + 0.05;
+    noise.start(now);
+    lfo.start(now);
+    motor.start(now);
+    noise.stop(stopAt);
+    lfo.stop(stopAt);
+    motor.stop(stopAt);
+}
+
+function playPrinterSound(ms) {
+    if (REDUCE_MOTION || ms < 200) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+
+    const deadline = performance.now() + ms;
+    const schedule = () => {
+        const remaining = deadline - performance.now();
+        if (ctx.state !== 'running' || remaining < 200) return;
+        buildPrinterNoise(ctx, remaining / 1000);
+    };
+
+    if (ctx.state === 'running') {
+        schedule();
+    } else {
+        // Navegador só libera áudio após interação; se liberar a tempo, toca o resto
+        ctx.resume().then(schedule).catch(() => {});
+    }
+}
+
+// Som da impressão inicial (mesma duração e atraso da animação do recibo)
+setTimeout(() => playPrinterSound(2800), 400);
+
+/* ---------- Papéis impressos (Skills, About me) ---------- */
+let paperLayer = 30;
+
+function paperTrigger(id) {
+    return document.querySelector(`.paper-scrap[data-paper="${id}"]`);
+}
+
+function openPaper(paper) {
+    if (!paper) return;
+    paperLayer += 1;
+    paper.style.zIndex = paperLayer;
+    paper.classList.remove('is-peek');
+    paper.classList.add('is-open');
+    paper.setAttribute('aria-hidden', 'false');
+    paperTrigger(paper.id)?.setAttribute('aria-expanded', 'true');
+    playPrinterSound(2000);
+}
+
+function peekPaper(paper) {
+    if (!paper) return;
+    paper.classList.remove('is-open');
+    paper.classList.add('is-peek');
+    paper.setAttribute('aria-hidden', 'true');
+    paperTrigger(paper.id)?.setAttribute('aria-expanded', 'false');
+    playPrinterSound(1000);
+}
+
+document.querySelectorAll('.paper-scrap[data-paper]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        openPaper(document.getElementById(btn.dataset.paper));
+    });
+});
+
+document.querySelectorAll('.paper-close[data-close]').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        peekPaper(document.getElementById(btn.dataset.close));
+    });
+});
+
+document.querySelectorAll('.print-paper').forEach((paper) => {
+    paper.addEventListener('click', () => {
+        if (paper.classList.contains('is-peek')) openPaper(paper);
+    });
+});

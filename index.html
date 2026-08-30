@@ -114,6 +114,47 @@
         <!-- Metade Direita Vazia -->
         <div class="site-half right-half"></div>
     </div>
+
+    <!-- Botões recorte de papel que imprimem os papéis -->
+    <div class="scrap-stack">
+        <button class="paper-scrap" type="button" data-paper="skills-paper" aria-expanded="false" aria-controls="skills-paper">Skills</button>
+        <button class="paper-scrap" type="button" data-paper="about-paper" aria-expanded="false" aria-controls="about-paper">About me</button>
+    </div>
+
+    <!-- Papel de skills: impresso de baixo para cima -->
+    <aside id="skills-paper" class="print-paper" aria-hidden="true">
+        <button class="paper-close" type="button" data-close="skills-paper" aria-label="Fechar skills">X</button>
+        <div class="paper-content">
+            <div class="divider">----------------------------------------------------------------------------------------------------</div>
+            <p class="paper-title">SKILLS_</p>
+            <ul class="skills-list">
+                <li><span>Python</span><span class="skill-bar">[#########-]</span></li>
+                <li><span>JavaScript</span><span class="skill-bar">[########--]</span></li>
+                <li><span>HTML / CSS</span><span class="skill-bar">[#########-]</span></li>
+                <li><span>Node.js</span><span class="skill-bar">[#######---]</span></li>
+                <li><span>Git / GitHub</span><span class="skill-bar">[########--]</span></li>
+                <li><span>AI / LLMs</span><span class="skill-bar">[#########-]</span></li>
+                <li><span>Automation</span><span class="skill-bar">[########--]</span></li>
+            </ul>
+            <div class="divider">----------------------------------------------------------------------------------------------------</div>
+        </div>
+    </aside>
+
+    <!-- Papel de about me -->
+    <aside id="about-paper" class="print-paper" style="--paper-left: clamp(16px, 22vw, 420px); --open-tilt: -2deg; --peek: 34px" aria-hidden="true">
+        <button class="paper-close" type="button" data-close="about-paper" aria-label="Fechar about me">X</button>
+        <div class="paper-content">
+            <div class="divider">----------------------------------------------------------------------------------------------------</div>
+            <p class="paper-title">ABOUT_ME_</p>
+            <div class="about-text">
+                <p>Estudante de Ciência da Computação na PUC-Minas, em Belo Horizonte.</p>
+                <p>Trabalho com desenvolvimento de software, automação e aplicações com IA.</p>
+                <p>Interesse em sistemas, ferramentas de linha de comando e interfaces com identidade própria.</p>
+            </div>
+            <div class="divider">----------------------------------------------------------------------------------------------------</div>
+        </div>
+    </aside>
+
     <script src="script.js"></script>
 </body>
 </html>

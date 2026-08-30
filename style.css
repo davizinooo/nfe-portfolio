@@ -66,6 +66,7 @@ body {
     position: relative;
     z-index: 1;
     margin-left: 22px;
+    margin-top: 26px;
     margin-bottom: 40px;
     background-color: var(--paper-color);
     /* Sombra via filter para acompanhar a borda rasgada do ::after */
@@ -73,15 +74,15 @@ body {
         drop-shadow(2px 3px 6px rgba(0, 0, 0, 0.12));
     transform: rotate(var(--paper-tilt));
     transform-origin: top center;
-    animation: print-receipt 3.2s steps(42, end) 0.4s backwards;
+    animation: print-receipt 2.8s cubic-bezier(0.3, 0.75, 0.3, 1) 0.4s backwards;
     will-change: transform;
 }
 
-/* Borda inferior rasgada, como recibo arrancado da impressora */
+/* Borda superior rasgada, como recibo arrancado da impressora */
 .left-half::after {
     content: "";
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 0;
     width: 100%;
     height: 20px;
@@ -94,16 +95,191 @@ body {
 
 @keyframes print-receipt {
     from {
-        transform: translateY(-104%) rotate(var(--paper-tilt));
+        transform: translateY(-106%) rotate(var(--paper-tilt));
     }
     to {
         transform: translateY(0) rotate(var(--paper-tilt));
     }
 }
 
+/* Botões recorte de papel ao lado do recibo */
+.scrap-stack {
+    position: fixed;
+    top: 110px;
+    right: clamp(20px, 7vw, 110px);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 34px;
+}
+
+.paper-scrap {
+    position: relative;
+    padding: 16px 30px;
+    background: var(--paper-color);
+    border: none;
+    font-family: var(--font-family);
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: var(--text-color);
+    -webkit-text-stroke: 0.6px currentColor;
+    cursor: pointer;
+    transform: rotate(2.4deg);
+    filter: drop-shadow(4px 6px 12px rgba(0, 0, 0, 0.28));
+    transition: transform 0.25s ease;
+}
+
+.paper-scrap:nth-child(even) {
+    transform: rotate(-2deg);
+}
+
+.paper-scrap:hover {
+    transform: rotate(0.8deg) translateY(-3px);
+}
+
+.paper-scrap::before,
+.paper-scrap::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background-repeat: repeat-x;
+    background-size: 12px 8px;
+}
+
+.paper-scrap::before {
+    bottom: 100%;
+    background-image:
+        linear-gradient(-45deg, var(--paper-color) 6px, transparent 0),
+        linear-gradient(45deg, var(--paper-color) 6px, transparent 0);
+}
+
+.paper-scrap::after {
+    top: 100%;
+    background-image:
+        linear-gradient(135deg, var(--paper-color) 6px, transparent 0),
+        linear-gradient(-135deg, var(--paper-color) 6px, transparent 0);
+}
+
+/* Papéis impressos de baixo para cima, por cima do recibo */
+.print-paper {
+    position: fixed;
+    bottom: 0;
+    left: var(--paper-left, clamp(16px, 6vw, 140px));
+    width: min(560px, calc(100vw - 32px));
+    height: min(84vh, 900px);
+    z-index: 30;
+    padding: 30px 30px 20px;
+    background: var(--paper-color);
+    transform: translateY(108%) rotate(var(--open-tilt, 1.3deg));
+    transform-origin: bottom center;
+    transition: transform 1s cubic-bezier(0.55, 0.05, 0.65, 0.4);
+    filter: drop-shadow(-8px -4px 20px rgba(0, 0, 0, 0.28));
+    pointer-events: none;
+    will-change: transform;
+}
+
+.print-paper.is-open {
+    transform: translateY(0) rotate(var(--open-tilt, 1.3deg));
+    transition: transform 2s cubic-bezier(0.3, 0.75, 0.3, 1);
+    pointer-events: auto;
+}
+
+.print-paper.is-peek {
+    transform: translateY(calc(100% - var(--peek, 58px))) rotate(0.6deg);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.print-paper.is-peek .paper-close {
+    display: none;
+}
+
+/* Rasgo no topo do papel (ponta livre da impressão) */
+.print-paper::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    height: 16px;
+    background:
+        linear-gradient(-45deg, var(--paper-color) 8px, transparent 0),
+        linear-gradient(45deg, var(--paper-color) 8px, transparent 0);
+    background-repeat: repeat-x;
+    background-size: 16px 16px;
+}
+
+.paper-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    background: var(--highlight-bg);
+    color: #ffffff;
+    border: none;
+    font-family: var(--font-family);
+    font-size: 1.15rem;
+    font-weight: 900;
+    padding: 6px 13px;
+    cursor: pointer;
+}
+
+.paper-close:hover {
+    background: #a80404;
+}
+
+.paper-content {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    font-size: 1.15rem;
+}
+
+.paper-title {
+    font-size: 2rem;
+    font-weight: 900;
+    -webkit-text-stroke: 1px currentColor;
+    paint-order: stroke fill;
+    margin: 0.8rem 0 1.2rem;
+}
+
+.about-text p {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.skills-list {
+    list-style: none;
+    margin-bottom: 1.5rem;
+}
+
+.skills-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+    white-space: nowrap;
+}
+
+.skills-list .skill-bar {
+    color: #999;
+    letter-spacing: 0.05em;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .left-half {
         animation: none;
+    }
+
+    .print-paper,
+    .print-paper.is-open,
+    .paper-scrap {
+        transition: none;
     }
 }
 
@@ -522,7 +698,14 @@ a.link-highlight:hover {
 
     .left-half {
         width: calc(100% - 16px);
-        margin: 0 auto 32px;
+        margin: 24px auto 32px;
+    }
+
+    .scrap-stack {
+        top: auto;
+        bottom: 20px;
+        right: 16px;
+        gap: 26px;
     }
 
     .right-half {
