@@ -11,7 +11,7 @@
     <!-- Tela de boot: o site só imprime depois do liga/desliga -->
     <div id="boot-screen" class="boot-screen">
         <button id="power-button" class="power-button" type="button" aria-label="Ligar">
-            <span class="power-glyph" aria-hidden="true">&#9211;</span>
+            <span class="power-glyph" aria-hidden="true"></span>
             
         </button>
     </div>
@@ -46,11 +46,14 @@
                             <p class="can-wrap"><span class="highlight">B.S. in Computer Science</span></p>
                             <p class="field-block block-gap" style="--label-ch: 5ch">
                                 <span>Based:</span>
-                                <span >Belo Horizonte, Brazil</span>
+                                <span >Belo Horizonte, Brazil.</span>
                             </p>
                         </div>
+                        <div class="scrap-stack">
+                            <button class="paper-scrap link-highlight" type="button" data-paper="skills-paper" aria-expanded="false" aria-controls="skills-paper">Skills</button>, <button class="paper-scrap link-highlight" type="button" data-paper="about-paper" aria-expanded="false" aria-controls="about-paper">About_me</button>;
+                        </div>
                         <div class="header-links">
-                            <a href="#" class="link-highlight">Email</a>, <a href="#" class="link-highlight">In</a>, <a href="#" class="link-highlight">GitHub</a>, <a href="#" class="link-highlight">CV</a>
+                            <a href="mailto:davi_rodrigue_ss@hotmail.com" class="link-highlight">Email</a>, <a href="https://www.linkedin.com/in/davi-rodrigues-barbosa/" class="link-highlight">In</a>, <a href="https://github.com/davizinooo" class="link-highlight">GitHub</a>, <a href="#" class="link-highlight">CV</a>;
                         </div>
                         <div class="print-time">
                             Printed: <span id="printed-at">00:00:00</span>
@@ -99,27 +102,19 @@
                 <div class="divider">----------------------------------------------------------------------------------------------------</div>
                 <div class="footer-specs">
                     <div class="spec-row">
-                        <span>Project Type:</span><span>Portifolio Web</span>
+                        <span>TRANSACTION COMPLETE WITH SUCCESS</span>
                     </div>
-                    <div class="spec-arrows">
-                        <span>Stacks</span><span>→</span>
-                    </div>
-                    <div class="spec-details">
-                        <div class="spec-line">
-                            <span>Line length:</span> <span>20ch</span>
-                        </div>
-                        <div class="spec-line">
-                            <span>Line height:</span> <span>1.0</span>
-                        </div>
-                    </div>
+                    
+                    <p class="receipt-thanks">THANK YOU</p>
                     <div class="barcode-section">
                         <div class="barcode-wrapper">
                             <div class="numbers">
-                                12345678901234567890
+                                01001000 01001001
                             </div>
                             <div class="barcode">
                                 <div class="barcode-lines"></div>
                             </div>
+                            <p class="receipt-attention">YOUR ATTENTION IS APPRECIATED</p>
                         </div>
                     </div>
                 </div>
@@ -129,12 +124,6 @@
 
         <!-- Metade Direita Vazia -->
         <div class="site-half right-half"></div>
-    </div>
-
-    <!-- Botões recorte de papel que imprimem os papéis -->
-    <div class="scrap-stack">
-        <button class="paper-scrap" type="button" data-paper="skills-paper" aria-expanded="false" aria-controls="skills-paper">Skills</button>
-        <button class="paper-scrap" type="button" data-paper="about-paper" aria-expanded="false" aria-controls="about-paper">About me</button>
     </div>
 
     <!-- Papel de skills: impresso de baixo para cima -->
@@ -158,7 +147,7 @@
     </aside>
 
     <!-- Papel de about me -->
-    <aside id="about-paper" class="print-paper" style="--paper-right: clamp(16px, 3vw, 80px); --open-tilt: -2deg" aria-hidden="true">
+    <aside id="about-paper" class="print-paper" aria-hidden="true">
         <button class="paper-close" type="button" data-close="about-paper" aria-label="Fechar about me">X</button>
         <div class="paper-content">
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
