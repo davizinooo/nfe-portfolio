@@ -1,8 +1,28 @@
-# nfe-portfolio
+# nfE Portfolio
 
-Portfólio 
+Site ao vivo: **[davirodrigues.dev](https://davirodrigues.dev)**
 
-A página se **comporta como papel saindo de uma impressora: rasgo no topo, sombra, inclinação, animação de impressão e som sintetizado. Skills e About me são folhas que sobem por cima do recibo. Não há framework, bundler nem servidor próprio — só HTML, CSS e JavaScript.
+Portfólio pessoal que se comporta como um **recibo térmico**: botão de ligar, papel rasgado, sombra, inclinação, animação de impressão e som real de impressora. Skills e About me saem como folhas extras por cima do recibo. Sem framework, bundler ou servidor próprio — HTML, CSS e JavaScript, publicados na **Cloudflare Pages**.
+
+## Destaques
+
+- Recibo interativo: typewriter, horário de impressão, papéis de Skills / About me
+- Projetos: **NfeKide** (desktop NF-e), coleção on-chain (~400 ETH secondary) e **Code3**
+- Ícone em pixel, foto recortada, layout pensado para desktop e celular
+- Hospedado em domínio próprio (`davirodrigues.dev`)
+
+## Tecnologias
+
+| Camada        | Escolha |
+| ------------- | ------- |
+| Marcação      | HTML5 |
+| Estilo        | CSS3 — custom properties, flex, media queries, `@keyframes` |
+| Comportamento | JavaScript no navegador, zero dependências |
+| Tipo          | Fragment Mono (`.woff2` local) |
+| Som           | Efeito de recibo (`sounds/printer.mp3`) |
+| Deploy        | Cloudflare Pages + Worker (redirect `*.pages.dev` → domínio) |
+
+Arquivos centrais: `index.html`, `style.css`, `script.js`, `fonts/`, `images/`, `sounds/printer.mp3`.
 
 Este repositório também documenta um **estudo comparativo de agentes de IA**. O site foi implementado, quebrado, corrigido e revisado várias vezes, de propósito, para observar como modelos grandes se comportam em pedidos básicos, em estética e em otimização.
 
@@ -10,41 +30,14 @@ Este repositório também documenta um **estudo comparativo de agentes de IA**. 
 
 ## Sumário
 
-- [Sobre o projeto](#sobre-o-projeto)
-- [Stack](#stack)
+- [Destaques](#destaques)
+- [Tecnologias](#tecnologias)
 - [Estudo com agentes de IA](#estudo-com-agentes-de-ia)
 - [Estrutura](#estrutura)
 - [Como ver](#como-ver)
 - [Créditos](#créditos)
 
 ---
-
-
-
-## Sobre o projeto
-
-O objetivo de produto é um portfólio com identidade própria. O objetivo de estudo é treinar **revisão de código gerado por IA**: não aceitar a primeira resposta, confrontar modelos, e ficar com o que sobrevive a screenshot, mobile e recarga.
-
----
-
-## Stack
-
-
-| Camada        | Escolha                                                     | Por quê                                                                |
-| ------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Marcação      | HTML5                                                       | -                                                                      |
-| Estilo        | CSS3 — custom properties, flex, media queries, `@keyframes` | -                                                                      |
-| Comportamento | JavaScript no navegador, zero dependências                  | Relógio, escala do header, typewriter, papéis, Web Audio               |
-| Tipo          | Fragment Mono em `woff2` colocado de forma local            | Evita round-trip no Google Fonts; o texto pinta na primeira passada    |
-| Som           | Web Audio API                                               | Chiado de impressora gerado em tempo real, sem arquivo `.mp3` / `.wav` |
-| Git           | Git + GitHub                                                | Histórico das iterações (layout, som, papéis, peso)                    |
-
-
-Arquivos que importam: `index.html`, `style.css`, `script.js`, `fonts/fragment-mono-latin.woff2`.
-
----
-
-
 
 ## Estudo com agentes de IA
 
@@ -161,7 +154,11 @@ nfE-portfolio/
 ├── index.html
 ├── style.css
 ├── script.js
+├── _worker.js
+├── _routes.json
 ├── fonts/fragment-mono-latin.woff2
+├── images/
+├── sounds/printer.mp3
 └── README.md
 ```
 
@@ -171,7 +168,9 @@ nfE-portfolio/
 
 ## Como ver
 
-Abrir `index.html` no navegador, ou:
+Ao vivo: [davirodrigues.dev](https://davirodrigues.dev)
+
+Localmente, abrir `index.html` no navegador, ou:
 
 ```bash
 npx live-server --port=5500

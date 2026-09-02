@@ -98,112 +98,60 @@ function startTypewriter() {
     loop();
 }
 
-/* ---------- Som de impressora (sintetizado com Web Audio) ---------- */
+/* ---------- Som de impressora (efeito de recibo gravado) ---------- */
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let audioCtx = null;
+const PRINTER_SOUND_SRC = 'sounds/printer.mp3';
+let printerAudio = null;
+let printerStopTimer = null;
 
-function getAudioCtx() {
-    if (audioCtx) return audioCtx;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    audioCtx = new AC();
-    return audioCtx;
+function getPrinterAudio() {
+    if (printerAudio) return printerAudio;
+    printerAudio = new Audio(PRINTER_SOUND_SRC);
+    printerAudio.preload = 'auto';
+    printerAudio.volume = 0.85;
+    return printerAudio;
 }
 
-let noiseBuffer = null;
-
-// Ruído branco filtrado: o "chiado" da cabeça térmica. Gerado uma vez e reaproveitado.
-function getNoiseBuffer(ctx) {
-    if (noiseBuffer) return noiseBuffer;
-    const bufferSize = Math.ceil(ctx.sampleRate * 0.5);
-    noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i += 1) {
-        data[i] = Math.random() * 2 - 1;
+function unlockPrinterAudio() {
+    const audio = getPrinterAudio();
+    audio.muted = true;
+    const play = audio.play();
+    if (play) {
+        play
+            .then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.muted = false;
+            })
+            .catch(() => {
+                audio.muted = false;
+            });
     }
-    return noiseBuffer;
-}
-
-function buildPrinterNoise(ctx, seconds) {
-    const now = ctx.currentTime;
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = getNoiseBuffer(ctx);
-    noise.loop = true;
-
-    const band = ctx.createBiquadFilter();
-    band.type = 'bandpass';
-    band.frequency.value = 2100;
-    band.Q.value = 0.7;
-
-    // Pulso rápido no ganho: linhas sendo impressas
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.value = 0.05;
-    const lfo = ctx.createOscillator();
-    lfo.type = 'square';
-    lfo.frequency.value = 24;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.04;
-    lfo.connect(lfoGain);
-    lfoGain.connect(noiseGain.gain);
-
-    // Zumbido grave do motor de arrasto
-    const motor = ctx.createOscillator();
-    motor.type = 'sawtooth';
-    motor.frequency.value = 85;
-    const motorFilter = ctx.createBiquadFilter();
-    motorFilter.type = 'lowpass';
-    motorFilter.frequency.value = 320;
-    const motorGain = ctx.createGain();
-    motorGain.gain.value = 0.025;
-
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(1, now + 0.08);
-    master.gain.setValueAtTime(1, now + Math.max(0.1, seconds - 0.18));
-    master.gain.exponentialRampToValueAtTime(0.0001, now + seconds);
-
-    noise.connect(band);
-    band.connect(noiseGain);
-    noiseGain.connect(master);
-    motor.connect(motorFilter);
-    motorFilter.connect(motorGain);
-    motorGain.connect(master);
-    master.connect(ctx.destination);
-
-    const stopAt = now + seconds + 0.05;
-    noise.start(now);
-    lfo.start(now);
-    motor.start(now);
-    noise.stop(stopAt);
-    lfo.stop(stopAt);
-    motor.stop(stopAt);
 }
 
 function playPrinterSound(ms) {
     if (REDUCE_MOTION || ms < 200) return false;
-    const ctx = getAudioCtx();
-    if (!ctx) return false;
-
-    const deadline = performance.now() + ms;
-    const schedule = () => {
-        const remaining = deadline - performance.now();
-        if (ctx.state !== 'running' || remaining < 200) return;
-        buildPrinterNoise(ctx, remaining / 1000);
-    };
-
-    if (ctx.state === 'running') {
-        schedule();
-        return true;
+    const audio = getPrinterAudio();
+    if (printerStopTimer) {
+        clearTimeout(printerStopTimer);
+        printerStopTimer = null;
     }
-
-    ctx.resume().then(schedule).catch(() => {});
-    return ctx.state === 'running';
+    audio.pause();
+    audio.currentTime = 0;
+    audio.muted = false;
+    const play = audio.play();
+    if (play) play.catch(() => {});
+    printerStopTimer = setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        printerStopTimer = null;
+    }, ms);
+    return true;
 }
 
 /* ---------- Liga/desliga: o site imprime a partir do clique ---------- */
 const PRINT_DELAY_MS = 400; // mesmo atraso da animação do recibo
-const PRINT_SOUND_MS = 2800;
+const PRINT_SOUND_MS = 3600;
 let siteIsOn = false;
 
 function bootSite() {
@@ -211,8 +159,7 @@ function bootSite() {
     siteIsOn = true;
 
     // O clique é o gesto que libera o áudio no navegador
-    const ctx = getAudioCtx();
-    if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+    unlockPrinterAudio();
 
     document.body.classList.add('is-on');
     stampPrintTime();
@@ -245,17 +192,15 @@ function bringPaperForward(paper) {
 function openPaper(paper) {
     if (!paper) return;
     bringPaperForward(paper);
-    paper.classList.remove('is-peek');
     paper.classList.add('is-open');
     paper.setAttribute('aria-hidden', 'false');
     paperTrigger(paper.id)?.setAttribute('aria-expanded', 'true');
     playPrinterSound(2000);
 }
 
-function peekPaper(paper) {
+function closePaper(paper) {
     if (!paper) return;
     paper.classList.remove('is-open');
-    paper.classList.add('is-peek');
     paper.setAttribute('aria-hidden', 'true');
     paperTrigger(paper.id)?.setAttribute('aria-expanded', 'false');
     playPrinterSound(1000);
@@ -266,7 +211,7 @@ document.querySelectorAll('.paper-scrap[data-paper]').forEach((btn) => {
         const paper = document.getElementById(btn.dataset.paper);
         if (!paper) return;
         if (paper.classList.contains('is-open')) {
-            peekPaper(paper);
+            closePaper(paper);
         } else {
             openPaper(paper);
         }
@@ -276,23 +221,15 @@ document.querySelectorAll('.paper-scrap[data-paper]').forEach((btn) => {
 document.querySelectorAll('.paper-close[data-close]').forEach((btn) => {
     btn.addEventListener('click', (event) => {
         event.stopPropagation();
-        peekPaper(document.getElementById(btn.dataset.close));
+        closePaper(document.getElementById(btn.dataset.close));
     });
 });
 
+// Clicar no papel só traz ele para frente; fechar é pelo botão ou pelo X
 document.querySelectorAll('.print-paper').forEach((paper) => {
     paper.addEventListener('click', () => {
-        if (paper.classList.contains('is-peek')) {
-            openPaper(paper);
-            return;
-        }
         if (!paper.classList.contains('is-open')) return;
-
-        const isFront = Number(paper.style.zIndex) === paperLayer;
-        if (isFront) {
-            peekPaper(paper);
-        } else {
-            bringPaperForward(paper);
-        }
+        if (Number(paper.style.zIndex) === paperLayer) return;
+        bringPaperForward(paper);
     });
 });

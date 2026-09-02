@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Davi Rodrigues - Portfolio</title>
+    <link rel="icon" href="images/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <link rel="preload" href="fonts/fragment-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="sounds/printer.mp3" as="audio">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -53,24 +57,26 @@
                             <button class="paper-scrap link-highlight" type="button" data-paper="skills-paper" aria-expanded="false" aria-controls="skills-paper">Skills</button>, <button class="paper-scrap link-highlight" type="button" data-paper="about-paper" aria-expanded="false" aria-controls="about-paper">About_me</button>;
                         </div>
                         <div class="header-links">
-                            <a href="mailto:davi_rodrigue_ss@hotmail.com" class="link-highlight">Email</a>, <a href="https://www.linkedin.com/in/davi-rodrigues-barbosa/" class="link-highlight">In</a>, <a href="https://github.com/davizinooo" class="link-highlight">GitHub</a>, <a href="#" class="link-highlight">CV</a>;
+                            <a href="mailto:davi_rodrigue_ss@hotmail.com" class="link-highlight" target="_blank" rel="noopener noreferrer">Email</a>, <a href="https://www.linkedin.com/in/davi-rodrigues-barbosa/" class="link-highlight" target="_blank" rel="noopener noreferrer">In</a>, <a href="https://github.com/davizinooo" class="link-highlight" target="_blank" rel="noopener noreferrer">GitHub</a>, <a href="#" class="link-highlight" target="_blank" rel="noopener noreferrer">CV</a>;
                         </div>
                         <div class="print-time">
-                            Printed: <span id="printed-at">00:00:00</span>
+                            Printed: <span id="printed-at">00:00:00</span>;
                         </div>
                         <div class="divider">----------------------------------------------------------------------------------------------------</div>
                     </header>
                 </div>
 
             <section class="gallery">
+                <p class="projetos-title">Projetos;</p>
                 <div class="project project-large">
-                    <div class="placeholder-img large-img">
-                        <div class="dot-grid"></div>
-                        <span class="img-label">Placeholder Image</span>
+                    <div class="placeholder-img large-img has-shot">
+                        <img src="images/nfekide.png" alt="NfeKide: conferência de NF-e e formação de preço">
+                        <span class="img-label">NfeKide</span>
                     </div>
                     <div class="project-details">
-                        <p><strong>Project Name, Curabitur vitae odio pretium, volutpat augue efficitur, ullamcorper ante. Nunc ultrices eget urna in aliquet, nulla at ullamcorper leo. Aliquam egestas non lacus sed tempor.</strong></p>
-                        <p class="credits">↳ Discipline A, Discipline B, Various Credits</p>
+                        <p><strong>NfeKide — desktop app for NF-e check-in and retail price formation. XMLs are imported automatically from SEFAZ or Gmail, then markup is applied and items sync to Google Sheets — local-first, with encrypted storage.</strong></p>
+                        <p class="credits">↳ C#, .NET, WPF · SQLCipher, DPAPI · SEFAZ, Gmail API, Google Sheets API</p>
+                        <p class="credits">↳ AI / Cursor, Codex, Antigravity · agent orchestration, Maestri</p>
                     </div>
                 </div>
 
@@ -78,22 +84,31 @@
 
                 <div class="project-grid">
                     <div class="project">
-                        <div class="placeholder-img medium-img">
-                            <div class="dot-grid"></div>
-                            <span class="img-label">Placeholder Image</span>
+                        <div class="placeholder-img medium-img has-shot collection-card">
+                            <div class="collection-card-inner">
+                                <span class="collection-kicker">ON-CHAIN COLLECTION</span>
+                                <span class="collection-metric">400 ETH</span>
+                                <span class="collection-sub">secondary volume</span>
+                                <span class="collection-line">art · metadata · launch</span>
+                            </div>
+                            <span class="img-label">Launch</span>
+                        </div>
+                        <div class="project-details">
+                            <p><strong>On-chain collection — from marketing imagery and technical development through launch. Scripts for assets, metadata, rarity and deploy; the collection did ~400 ETH in secondary volume.</strong></p>
+                            <p class="credits">↳ Python, JavaScript · metadata, rarity, deploy · marketing imagery, launch</p>
                         </div>
                     </div>
                     <div class="project">
-                        <div class="placeholder-img medium-img">
-                            <div class="dot-grid"></div>
-                            <span class="img-label">Placeholder Image</span>
+                        <a class="placeholder-img medium-img has-shot" href="https://github.com/davizinooo/code3-mvp" target="_blank" rel="noopener noreferrer">
+                            <img src="images/code3-editor.png" alt="Code3: editor Python, tentativas e agente AWS">
+                            <span class="img-label">Code3</span>
+                        </a>
+                        <div class="project-details">
+                            <p><strong>Code3 — one coding puzzle, three attempts, every day. The player fills in a missing Python fragment; an AWS agent generates tomorrow's challenge from today's anonymous solve/fail rate.</strong></p>
+                            <p class="credits">↳ HTML, CSS, JavaScript, Pyodide · AWS Lambda, DynamoDB, EventBridge · <a href="https://github.com/davizinooo/code3-mvp" target="_blank" rel="noopener noreferrer">github.com/davizinooo/code3-mvp</a></p>
+                            <p class="credits">↳ Amazon Bedrock, Codex</p>
                         </div>
                     </div>
-                </div>
-                
-                <div class="project-details grid-details">
-                     <p><strong>Project Name, Curabitur vitae odio pretium, volutpat augue efficitur, ullamcorper ante. Nunc ultrices eget urna in aliquet, nulla at ullamcorper leo. Aliquam egestas non lacus sed tempor.</strong></p>
-                     <p class="credits">↳ Discipline A, Discipline B, Various Credits</p>
                 </div>
                 
             </section>
@@ -140,7 +155,10 @@
                 <li><span>SQL</span><span class="skill-bar">[######----]</span></li>
                 <li><span>Git / GitHub</span><span class="skill-bar">[########--]</span></li>
                 <li><span>Java</span><span class="skill-bar">[######----]</span></li>
-                <li><span>Pytorch</span><span class="skill-bar">[######----]</span></li>
+                <li><span>C</span><span class="skill-bar">[######----]</span></li>
+                <li><span>C++</span><span class="skill-bar">[######----]</span></li>
+                <li><span>blockchain</span><span class="skill-bar">[########--]</span></li>
+                
             </ul>
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
         </div>
@@ -152,8 +170,8 @@
         <div class="paper-content">
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
             <p class="paper-title">ABOUT ME<span class="title-cursor" aria-hidden="true">_</span></p>
-            <figure class="about-photo placeholder-img">
-                <span class="img-label">Foto — placeholder</span>
+            <figure class="about-photo">
+                <img src="images/about.png?v=nobg2" alt="Davi Rodrigues">
             </figure>
             <div class="about-text">
                 <p>Computer Science student at PUC Minas with experience in software automation, digital projects, and AI-assisted development. </p>

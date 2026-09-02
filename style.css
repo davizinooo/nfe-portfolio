@@ -203,8 +203,9 @@ body.is-on .left-half {
     bottom: 0;
     right: var(--paper-right);
     width: min(520px, calc(100vw - 48px));
-    /* Altura deixa a faixa dos botões livre no topo */
-    height: min(74vh, 860px);
+    /* O conteúdo define o comprimento do papel, como no recibo principal */
+    height: auto;
+    max-height: calc(100dvh - 28px);
     z-index: 30;
     padding: 30px 30px 20px;
     background: var(--paper-color);
@@ -231,24 +232,10 @@ body.is-on .left-half {
 }
 
 .print-paper.is-open {
-    /* Desce o bastante para o fim do papel ficar fora da tela */
-    transform: translateY(22%) rotate(var(--open-tilt, 1.3deg));
+    /* Desce o bastante para a ponta inclinada do fim do papel sair da tela */
+    transform: translateY(14px) rotate(var(--open-tilt, 1.3deg));
     transition: transform 2s cubic-bezier(0.3, 0.75, 0.3, 1);
     pointer-events: auto;
-}
-
-.print-paper.is-peek {
-    transform: translateY(calc(100% - var(--peek, 58px))) rotate(var(--open-tilt, 1.3deg));
-    pointer-events: auto;
-    cursor: pointer;
-}
-
-.print-paper.is-peek .paper-close {
-    display: none;
-}
-
-.print-paper.is-peek .paper-content {
-    overflow: hidden;
 }
 
 .paper-close {
@@ -291,17 +278,20 @@ body.is-on .left-half {
 
 .about-photo {
     position: relative;
-    width: 100%;
+    width: min(100%, calc(min(44vh, 340px) * 3 / 4));
     aspect-ratio: 3 / 4;
-    max-height: min(52vh, 420px);
-    margin: 0 0 1.2rem;
+    margin: 0 auto 1.2rem;
+    overflow: hidden;
+    background: transparent;
 }
 
 .about-photo img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(2px 3px 5px rgba(0, 0, 0, 0.22));
 }
 
 .paper-title {
@@ -309,6 +299,13 @@ body.is-on .left-half {
     font-weight: 900;
     -webkit-text-stroke: 1px currentColor;
     paint-order: stroke fill;
+    margin: 0.8rem 0 1.2rem;
+}
+
+.projetos-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.3;
     margin: 0.8rem 0 1.2rem;
 }
 
@@ -587,6 +584,84 @@ button.link-highlight:hover {
     background-size: 20px 20px;
 }
 
+.placeholder-img.has-shot {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background-image: none;
+    background-color: #0b0d10;
+}
+
+a.placeholder-img.has-shot:hover {
+    color: inherit;
+    background-color: #0b0d10;
+}
+
+.placeholder-img.has-shot img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+}
+
+.placeholder-img.medium-img.has-shot img {
+    object-position: center 38%;
+}
+
+.placeholder-img.has-shot .img-label {
+    color: #ececec;
+    background: rgba(11, 13, 16, 0.72);
+    padding: 2px 6px;
+}
+
+.collection-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 80% 0%, rgba(255, 157, 46, 0.18), transparent 42%),
+        #0b0d10;
+}
+
+.collection-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 1.4rem 1.5rem;
+    width: 100%;
+    color: #f4f7fa;
+}
+
+.collection-kicker,
+.collection-sub,
+.collection-line {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8d99a6;
+}
+
+.collection-metric {
+    font-size: clamp(2.4rem, 8vw, 3.4rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: #ff9d2e;
+}
+
+.collection-sub {
+    color: #f4f7fa;
+    letter-spacing: 0.08em;
+}
+
+.collection-line {
+    margin-top: 0.85rem;
+    color: #ff9d2e;
+}
+
 .large-img {
     height: 450px;
 }
@@ -615,20 +690,20 @@ button.link-highlight:hover {
     font-size: 0.8rem;
 }
 
+.project-details .credits a {
+    color: inherit;
+}
+
 .project-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 3rem;
     min-width: 0;
 }
 
 .project-grid .project {
     min-width: 0;
-}
-
-.grid-details {
-    margin-bottom: 3rem;
 }
 
 .footer {
@@ -777,7 +852,6 @@ button.link-highlight:hover {
     /* Papéis um pouco mais estreitos no tablet, mas ainda defasados */
     .print-paper {
         width: min(520px, calc(100vw - 20px));
-        height: min(88vh, 900px);
         padding: 26px 20px 16px;
     }
 
@@ -878,16 +952,17 @@ button.link-highlight:hover {
     }
 
     #about-paper {
-        --paper-right: calc(6px + min(86vw, 520px) * 0.36);
+        /* No celular o offset de desktop empurra o papel para fora à esquerda */
+        left: 8px;
+        right: 8px;
+        width: auto;
+        --paper-right: 8px;
+        --open-tilt: 0deg;
     }
 
-    /* Alvo de toque confortável para fechar e reabrir */
+    /* Alvo de toque confortável para fechar */
     .paper-close {
         padding: 10px 16px;
-    }
-
-    .print-paper.is-peek {
-        --peek: 46px;
     }
 }
 
