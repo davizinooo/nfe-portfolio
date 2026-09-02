@@ -178,22 +178,4 @@ npx live-server --port=5500
 
 ---
 
-
-
-## Créditos
-
-Projeto de **Davi Rodrigues**. Estudo e implementação com agentes Fable, Opus, Grok (Cursor) e Antigravity.
-
-Se você **usar, copiar, adaptar ou publicar** este trabalho (o site, o CSS do recibo, o som da impressora, a mecânica dos papéis ou o texto deste estudo), dê crédito de forma visível:
-
-1. Nome: Davi Rodrigues
-2. Repositório: [github.com/davizinooo/nfe-portfolio](https://github.com/davizinooo/nfe-portfolio)
-
-Sugestão de atribuição:
-
-```
-Baseado em nfe-portfolio, de Davi Rodrigues
-https://github.com/davizinooo/nfe-portfolio
-```
-
-Uso pessoal / portfólio e material de estudo sobre agentes de IA. Ajuste nome, links, foto e textos antes de republicar como seu e mantenha o crédito se a base continuar sendo esta.
+Uso pessoal / portfólio e material de estudo sobre agentes de IA. Ajuste nome, links, foto e textos antes de republicar como seu.
