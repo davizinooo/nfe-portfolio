@@ -1,5 +1,7 @@
 Thumbs.db
 .DS_Store
+node_modules/
+_verify/printer/
 .cursor
 _tmp-code3
 fonts/IBMPlexSans-Italic-VariableFont_wdth,wght.ttf

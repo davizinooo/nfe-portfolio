@@ -17,12 +17,37 @@ Portfólio pessoal que se comporta como um **recibo térmico**: botão de ligar,
 | ------------- | ------- |
 | Marcação      | HTML5 |
 | Estilo        | CSS3 — custom properties, flex, media queries, `@keyframes` |
-| Comportamento | JavaScript no navegador, zero dependências |
+| Comportamento | JavaScript no navegador + Three.js 0.180.0 local, sem bundler |
 | Tipo          | Fragment Mono (`.woff2` local) |
-| Som           | Efeito de recibo (`sounds/printer.mp3`) |
+| Som           | Gravação real de impressora térmica (`sounds/printer-thermal.mp3`) |
 | Deploy        | Cloudflare Pages + Worker (redirect `*.pages.dev` → domínio) |
 
-Arquivos centrais: `index.html`, `style.css`, `script.js`, `fonts/`, `images/`, `sounds/printer.mp3`.
+Arquivos centrais: `index.html`, `style.css`, `printer.css`, `script.js`, `printer-scene.js`, `vendor/three/`, `fonts/`, `images/`, `sounds/printer-thermal.mp3`.
+
+## Impressora 3D e recibo HTML
+
+A abertura usa uma impressora térmica procedural: carcaça com chanfros, tampa, saída, rolo, cabeçote e LED. A câmera é ortográfica, mais frontal no celular. O canvas é decorativo (`aria-hidden`, sem eventos de ponteiro); nenhum texto, projeto ou link do portfólio é desenhado no WebGL.
+
+`script.js` controla uma única máquina de estados: `idle → powering-on` (600 ms) `→ warming-up` (1 s) `→ printing` (6,2 s) `→ completed`. O mesmo relógio sincroniza peças mecânicas, alimentação do HTML e som. Cliques repetidos não criam novas sequências. A rolagem cresce junto com a área impressa; ao concluir, o HTML inteiro volta a aceitar foco e interação. O botão **Skip animation** funciona desde o início da sequência, e a preferência por movimento reduzido abre o conteúdo imediatamente e sem áudio.
+
+`printer-scene.js` projeta os dois extremos da saída 3D para pixels CSS. Esses valores definem a largura e a origem do recibo real. `printer.css` revela a folha de cima para baixo com altura progressiva e `overflow: clip`; o canvas cobre a junção. Resize, orientação, fonte e mudanças de altura recalculam a integração. A inclinação original continua, sem translate/scale temporário no recibo após a impressão. As folhas de Skills e About mantêm sua alimentação pela borda inferior, acima da cena, com fechamento por Escape e retorno do foco ao botão de origem.
+
+### Carregamento e fallback
+
+- O botão HTML e uma impressora estática em CSS aparecem antes do carregamento assíncrono do Three.js. Nenhum pedido de áudio é feito antes da ação do visitante.
+- Falha no módulo, em suas dependências, ausência de WebGL2 ou perda de contexto mantém a representação CSS e a impressão HTML. Um prazo de 8 s encerra a espera pelo 3D; iniciar antes de ele estar pronto usa a versão estática durante toda a sequência.
+- Falha ou bloqueio do áudio não interrompe o papel. Sem JavaScript, o conteúdo principal aparece diretamente, sem tela de bloqueio.
+- Ao ocultar a aba, o relógio e o áudio param; retornar continua a fase existente. O canvas só renderiza durante a sequência e quando seu enquadramento muda. Não existe loop WebGL permanente em `idle` ou `completed`.
+
+### Assets, licença e orçamento
+
+Three.js **0.180.0** é a única dependência de produção. Seus dois módulos ES minificados são mantidos sem alterações em `vendor/three/`, com a [licença MIT original](vendor/three/LICENSE). Origem: distribuição npm `three@0.180.0`, arquivos `build/three.module.min.js`, `build/three.core.min.js` e `LICENSE`, obtidos pelo jsDelivr durante o desenvolvimento. O navegador usa somente as cópias locais; não há dependência de CDN em execução.
+
+A geometria foi criada em código neste repositório. **Modelo baixado: 0 B. Texturas 3D: 0 B.** O som é a gravação [“epson receipt printer5” de azumarill](https://freesound.org/people/azumarill/sounds/345054/), distribuída sob [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). O navegador usa a cópia local; não há pedido externo durante a impressão.
+
+Orçamento: **780 KiB de JavaScript bruto / 190 KiB gzip**, incluindo Three.js e os dois scripts da aplicação; **8 KiB de CSS novo**; **0 B de modelos e texturas 3D**. A medição gzip é uma estimativa local com nível 9, não uma medição de transferência do servidor de produção. Os tamanhos exatos da versão implementada e a validação estão em [tests/PRINTER-VALIDATION.md](tests/PRINTER-VALIDATION.md).
+
+Pixel ratio limitado a **1,5**, ou **1** quando o navegador informa até quatro núcleos ou até 4 GB de memória. Nesse perfil o antialiasing também é desligado. Não há mapas de sombra, pós-processamento ou texturas; a sombra de contato é CSS, com blur menor no celular. Geometria e materiais são alocados ao criar a cena, não no render loop. A câmera frontal e os movimentos pequenos também reduzem a complexidade visual em telas estreitas.
 
 Este repositório também documenta um **estudo comparativo de agentes de IA**. O site foi implementado, quebrado, corrigido e revisado várias vezes, de propósito, para observar como modelos grandes se comportam em pedidos básicos, em estética e em otimização.
 
@@ -32,6 +57,7 @@ Este repositório também documenta um **estudo comparativo de agentes de IA**. 
 
 - [Destaques](#destaques)
 - [Tecnologias](#tecnologias)
+- [Impressora 3D e recibo HTML](#impressora-3d-e-recibo-html)
 - [Estudo com agentes de IA](#estudo-com-agentes-de-ia)
 - [Estrutura](#estrutura)
 - [Como ver](#como-ver)
@@ -154,11 +180,15 @@ nfE-portfolio/
 ├── index.html
 ├── style.css
 ├── script.js
+├── printer.css
+├── printer-scene.js
+├── vendor/three/  # módulos locais e licença MIT
+├── tests/        # verificação de comportamento e relatório
 ├── _worker.js
 ├── _routes.json
 ├── fonts/fragment-mono-latin.woff2
 ├── images/
-├── sounds/printer.mp3
+├── sounds/printer-thermal.mp3
 └── README.md
 ```
 
@@ -170,12 +200,43 @@ nfE-portfolio/
 
 Ao vivo: [davirodrigues.dev](https://davirodrigues.dev)
 
-Localmente, abrir `index.html` no navegador, ou:
+Para o 3D, sirva a pasta por HTTP (módulos ES não devem ser abertos via `file://`). Com Python instalado:
+
+```bash
+python -m http.server 8765 --bind 127.0.0.1
+```
+
+Abra [localhost:8765](http://localhost:8765). Alternativa com Node.js:
 
 ```bash
 npx live-server --port=5500
 ```
 
+Não é necessário build. Para a bateria automatizada, use Node.js, Chrome e Playwright como dependência **opcional de desenvolvimento**:
+
+```bash
+npm install --no-save --package-lock=false playwright@1.62.1
+node tests/printer.cjs
+```
+
+O servidor precisa estar rodando na porta 8765. `TEST_URL` altera a URL e `CHROME_PATH` altera o executável (o padrão é o Chrome instalado no Windows). As capturas e o relatório JSON ficam em `_verify/printer/`. A suíte cobre seis viewports, sequência completa, Skip, teclado, folhas, links, seleção, CLS, inatividade da GPU, falhas e preferências de movimento. Nenhum desses recursos de teste é carregado pelo site.
+
 ---
+
+## Créditos
+
+Projeto de **Davi Rodrigues**. Estudo e implementação com agentes Fable, Opus, Grok (Cursor) e Antigravity.
+
+Se você **usar, copiar, adaptar ou publicar** este trabalho (o site, o CSS do recibo, o som da impressora, a mecânica dos papéis ou o texto deste estudo), dê crédito de forma visível:
+
+1. Nome: Davi Rodrigues
+2. Repositório: [github.com/davizinooo/nfe-portfolio](https://github.com/davizinooo/nfe-portfolio)
+
+Sugestão de atribuição:
+
+`
+Baseado em nfe-portfolio, de Davi Rodrigues
+https://github.com/davizinooo/nfe-portfolio
+`
 
 Uso pessoal / portfólio e material de estudo sobre agentes de IA. Ajuste nome, links, foto e textos antes de republicar como seu.

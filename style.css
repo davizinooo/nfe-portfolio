@@ -59,63 +59,6 @@ body {
     min-height: 100dvh;
 }
 
-/* Tela branca inicial, acima de tudo */
-.boot-screen {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: #ffffff;
-    display: grid;
-    place-items: center;
-    transition: opacity 0.5s ease;
-}
-
-.boot-screen.is-off {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.power-button {
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 0.7rem;
-    width: clamp(104px, 24vw, 140px);
-    height: clamp(104px, 24vw, 140px);
-    border: 2px solid var(--text-color);
-    border-radius: 50%;
-    background: none;
-    color: var(--text-color);
-    font-family: var(--font-family);
-    cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.power-glyph {
-    font-size: clamp(2.4rem, 8vw, 3.2rem);
-    line-height: 1;
-}
-
-.power-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-}
-
-@media (hover: hover) {
-    .power-button:hover {
-        background-color: var(--text-color);
-        color: #ffffff;
-        transform: scale(1.04);
-    }
-}
-
-.power-button:active {
-    transform: scale(0.96);
-}
-
 .container {
     display: flex;
     width: 100%;
@@ -149,11 +92,6 @@ body {
     transform-origin: top center;
 }
 
-/* A impressão só começa quando o site é ligado */
-body.is-on .left-half {
-    animation: print-receipt 2.8s cubic-bezier(0.3, 0.75, 0.3, 1) 0.4s backwards;
-}
-
 /* Borda superior rasgada, como recibo arrancado da impressora */
 .left-half::after,
 .print-paper::before {
@@ -173,15 +111,6 @@ body.is-on .left-half {
     mask-size: 20px 12px;
 }
 
-@keyframes print-receipt {
-    from {
-        transform: translateY(-106%) rotate(var(--paper-tilt));
-    }
-    to {
-        transform: translateY(0) rotate(var(--paper-tilt));
-    }
-}
-
 .scrap-stack {
     font-size: 2.2rem;
     margin-bottom: 1.2rem;
@@ -195,6 +124,22 @@ body.is-on .left-half {
     font-family: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+}
+
+.paper-scrap:focus-visible,
+.link-highlight:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+.paper-close:focus-visible {
+    outline: 2px solid var(--text-color);
+    outline-offset: 3px;
+}
+
+a:focus-visible {
+    outline: 2px solid var(--link-color);
+    outline-offset: 3px;
 }
 
 /* Papéis impressos de baixo para cima, ao lado do recibo */
@@ -283,6 +228,12 @@ body.is-on .left-half {
     margin: 0 auto 1.2rem;
     overflow: hidden;
     background: transparent;
+}
+
+.about-photo picture {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .about-photo img {
@@ -407,6 +358,7 @@ a:hover {
     align-items: baseline;
     gap: 1rem;
     min-width: 0;
+    margin-bottom: 0.2rem;
 }
 
 .field-block {
@@ -533,6 +485,9 @@ a:hover {
 
 .logo-name {
     display: inline-block;
+    margin: 0;
+    font-family: inherit;
+    color: inherit;
     font-size: 1.72em;
     line-height: 0.8;
     letter-spacing: -0.16em;
@@ -717,9 +672,15 @@ a.placeholder-img.has-shot:hover {
 
 .spec-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    text-align: center;
     gap: 0.35rem;
     min-width: 0;
+}
+
+.spec-row span {
+    width: 100%;
+    text-align: center;
 }
 
 .spec-arrows {
@@ -758,6 +719,8 @@ a.placeholder-img.has-shot:hover {
 
 .barcode-section {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     width: 100%;
     margin-top: 0.4rem;
@@ -765,11 +728,14 @@ a.placeholder-img.has-shot:hover {
 }
 
 .barcode-wrapper {
-    display: inline-flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: max-content;
+    justify-items: center;
+    justify-content: center;
     width: max-content;
     max-width: 100%;
     min-width: 0;
+    margin-inline: auto;
 }
 
 .numbers,
@@ -782,7 +748,6 @@ a.placeholder-img.has-shot:hover {
 .numbers {
     margin-bottom: 0.5rem;
     white-space: nowrap;
-    overflow: hidden;
 }
 
 .receipt-attention {
@@ -792,15 +757,21 @@ a.placeholder-img.has-shot:hover {
     letter-spacing: 0.04em;
     margin: 0.65rem 0 0;
     line-height: 1.25;
+    max-width: 100%;
 }
 
 .barcode {
-    width: 100%;
+    width: 110%;
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .barcode-lines {
-    height: 120px;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    height: 120px;
     background: repeating-linear-gradient(
         90deg,
         var(--text-color),
@@ -885,7 +856,20 @@ a.placeholder-img.has-shot:hover {
 
     .numbers,
     .receipt-attention {
-        font-size: clamp(0.75rem, 4.8vw, 1.8rem);
+        font-size: clamp(0.7rem, 3.2vw, 1.35rem);
+    }
+
+    .receipt-attention {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: break-word;
+        letter-spacing: 0.02em;
+    }
+
+    .spec-row {
+        flex-wrap: wrap;
     }
 }
 
@@ -901,6 +885,38 @@ a.placeholder-img.has-shot:hover {
 
     .footer-specs {
         font-size: clamp(1.1rem, 5.2vw, 1.5rem);
+    }
+
+    .header-row {
+        flex-wrap: wrap;
+        gap: 0.2rem 0.75rem;
+    }
+
+    .typewriter-dev {
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    .highlight {
+        display: inline;
+        white-space: normal;
+        max-width: 100%;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+    }
+
+    .receipt-attention {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: break-word;
+        font-size: clamp(0.62rem, 3.4vw, 0.95rem);
+        letter-spacing: 0.02em;
+    }
+
+    .spec-row {
+        flex-wrap: wrap;
     }
 
     .divider {

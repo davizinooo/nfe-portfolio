@@ -1,23 +1,45 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Davi Rodrigues - Portfolio</title>
+    <meta name="description" content="Davi Rodrigues, Computer Science student at PUC Minas. Software developer portfolio: NfeKide, on-chain collection, and Code3.">
+    <link rel="canonical" href="https://davirodrigues.dev/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Davi Rodrigues - Portfolio">
+    <meta property="og:description" content="Davi Rodrigues, Computer Science student at PUC Minas. Software developer portfolio: NfeKide, on-chain collection, and Code3.">
+    <meta property="og:url" content="https://davirodrigues.dev/">
+    <meta property="og:image" content="https://davirodrigues.dev/images/about.png">
+    <meta name="twitter:card" content="summary">
     <link rel="icon" href="images/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png">
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <link rel="preload" href="fonts/fragment-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="sounds/printer.mp3" as="audio">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="printer.css">
 </head>
 <body>
-    <!-- Tela de boot: o site só imprime depois do liga/desliga -->
+    <!-- A interface funciona antes de o módulo WebGL terminar de carregar. -->
     <div id="boot-screen" class="boot-screen">
-        <button id="power-button" class="power-button" type="button" aria-label="Ligar">
-            <span class="power-glyph" aria-hidden="true"></span>
-            
+        <div class="printer-caption" aria-hidden="true"><span>DR / PORTFOLIO</span><span>THERMAL SERIES — 01</span></div>
+        <div id="printer-scene" class="printer-scene" aria-hidden="true">
+            <div class="printer-static"><div class="static-lid"></div><span class="static-label">DR—01</span><i class="static-led"></i><div class="static-slot"></div></div>
+        </div>
+        <div class="printer-controls">
+        <p id="printer-status" role="status" aria-live="polite" aria-atomic="true">Offline · ready when you are</p>
+        <button id="power-button" class="power-button" type="button" aria-label="Print portfolio">
+            <span class="power-glyph" aria-hidden="true">
+                <svg class="power-icon" viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+                    <path d="M7.6 6.55a7 7 0 1 0 8.8 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+                </svg>
+            </span>
+            <span class="power-label">PRINT PORTFOLIO</span>
         </button>
+        <button id="skip-animation" class="skip-animation" type="button" hidden>Skip animation</button>
+        <p class="printer-hint" id="printer-hint">A small printout of what I do.</p>
+        </div>
     </div>
     <noscript>
         <style>
@@ -30,34 +52,34 @@
     <div class="container">
         <!-- Metade Esquerda com todo o conteúdo -->
         <div class="site-half left-half">
-            <main class="content">
+            <main class="content" id="portfolio" tabindex="-1">
                 <div class="header-frame">
                     <header class="header">
                         <div class="divider">----------------------------------------------------------------------------------------------------</div>
                         <div class="header-info">
-                            <p class="header-row">
-                                <span class="heavy logo-name">Davi Rodrigues</span>
+                            <div class="header-row">
+                                <h1 class="heavy logo-name">Davi Rodrigues</h1>
                                 <span class="heavy typewriter-dev">
                                     <span class="typewriter-sizer" aria-hidden="true">creative</span>
                                     <span class="typewriter-live">
                                         <span id="typewriter"></span><span class="type-cursor" aria-hidden="true"></span>
                                     </span>
                                 </span>
-                            </p>
-                            <p>Portifolio;</p>
+                            </div>
+                            <p>Portfolio;</p>
                             <p>Software Developer;</p>
-                            <p class="can-wrap block-gap">Currently: <span class="highlight">PUC-Minas</span></p>
+                            <p class="can-wrap block-gap">Studying at <span class="highlight">PUC-Minas</span></p>
                             <p class="can-wrap"><span class="highlight">B.S. in Computer Science</span></p>
-                            <p class="field-block block-gap" style="--label-ch: 5ch">
-                                <span>Based:</span>
-                                <span >Belo Horizonte, Brazil.</span>
+                            <p class="field-block can-wrap block-gap">
+                                <span>Based in</span>
+                                <span>Belo Horizonte, Brazil.</span>
                             </p>
                         </div>
                         <div class="scrap-stack">
                             <button class="paper-scrap link-highlight" type="button" data-paper="skills-paper" aria-expanded="false" aria-controls="skills-paper">Skills</button>, <button class="paper-scrap link-highlight" type="button" data-paper="about-paper" aria-expanded="false" aria-controls="about-paper">About_me</button>;
                         </div>
                         <div class="header-links">
-                            <a href="mailto:davi_rodrigue_ss@hotmail.com" class="link-highlight" target="_blank" rel="noopener noreferrer">Email</a>, <a href="https://www.linkedin.com/in/davi-rodrigues-barbosa/" class="link-highlight" target="_blank" rel="noopener noreferrer">In</a>, <a href="https://github.com/davizinooo" class="link-highlight" target="_blank" rel="noopener noreferrer">GitHub</a>, <a href="#" class="link-highlight" target="_blank" rel="noopener noreferrer">CV</a>;
+                            <a href="mailto:davi_rodrigue_ss@hotmail.com" class="link-highlight">Email</a>, <a href="https://www.linkedin.com/in/davi-rodrigues-barbosa/" class="link-highlight" target="_blank" rel="noopener noreferrer">In</a>, <a href="https://github.com/davizinooo" class="link-highlight" target="_blank" rel="noopener noreferrer">GitHub</a>;
                         </div>
                         <div class="print-time">
                             Printed: <span id="printed-at">00:00:00</span>;
@@ -67,10 +89,10 @@
                 </div>
 
             <section class="gallery">
-                <p class="projetos-title">Projetos;</p>
+                <h2 class="projetos-title">Projects;</h2>
                 <div class="project project-large">
                     <div class="placeholder-img large-img has-shot">
-                        <img src="images/nfekide.png" alt="NfeKide: conferência de NF-e e formação de preço">
+                        <img src="images/nfekide.png" alt="NfeKide: NF-e check-in and retail price formation">
                         <span class="img-label">NfeKide</span>
                     </div>
                     <div class="project-details">
@@ -100,7 +122,7 @@
                     </div>
                     <div class="project">
                         <a class="placeholder-img medium-img has-shot" href="https://github.com/davizinooo/code3-mvp" target="_blank" rel="noopener noreferrer">
-                            <img src="images/code3-editor.png" alt="Code3: editor Python, tentativas e agente AWS">
+                            <img src="images/code3-editor.png" alt="Code3: Python editor, attempts, and AWS agent">
                             <span class="img-label">Code3</span>
                         </a>
                         <div class="project-details">
@@ -117,7 +139,7 @@
                 <div class="divider">----------------------------------------------------------------------------------------------------</div>
                 <div class="footer-specs">
                     <div class="spec-row">
-                        <span>TRANSACTION COMPLETE WITH SUCCESS</span>
+                        <span>TRANSACTION COMPLETED SUCCESSFULLY</span>
                     </div>
                     
                     <p class="receipt-thanks">THANK YOU</p>
@@ -129,8 +151,8 @@
                             <div class="barcode">
                                 <div class="barcode-lines"></div>
                             </div>
-                            <p class="receipt-attention">YOUR ATTENTION IS APPRECIATED</p>
                         </div>
+                        <p class="receipt-attention">YOUR ATTENTION IS APPRECIATED</p>
                     </div>
                 </div>
             </footer>
@@ -142,11 +164,11 @@
     </div>
 
     <!-- Papel de skills: impresso de baixo para cima -->
-    <aside id="skills-paper" class="print-paper" aria-hidden="true">
-        <button class="paper-close" type="button" data-close="skills-paper" aria-label="Fechar skills">X</button>
+    <aside id="skills-paper" class="print-paper" aria-hidden="true" inert>
+        <button class="paper-close" type="button" data-close="skills-paper" aria-label="Close skills">X</button>
         <div class="paper-content">
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
-            <p class="paper-title">SKILLS<span class="title-cursor" aria-hidden="true">_</span></p>
+            <h2 class="paper-title">SKILLS<span class="title-cursor" aria-hidden="true">_</span></h2>
             <ul class="skills-list">
                 <li><span>AI / LLMs</span><span class="skill-bar">[########--]</span></li>
                 <li><span>Python</span><span class="skill-bar">[######----]</span></li>
@@ -165,18 +187,21 @@
     </aside>
 
     <!-- Papel de about me -->
-    <aside id="about-paper" class="print-paper" aria-hidden="true">
-        <button class="paper-close" type="button" data-close="about-paper" aria-label="Fechar about me">X</button>
+    <aside id="about-paper" class="print-paper" aria-hidden="true" inert>
+        <button class="paper-close" type="button" data-close="about-paper" aria-label="Close about me">X</button>
         <div class="paper-content">
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
-            <p class="paper-title">ABOUT ME<span class="title-cursor" aria-hidden="true">_</span></p>
+            <h2 class="paper-title">ABOUT ME<span class="title-cursor" aria-hidden="true">_</span></h2>
             <figure class="about-photo">
-                <img src="images/about.png?v=nobg2" alt="Davi Rodrigues">
+                <picture>
+                    <source srcset="images/about.webp" type="image/webp">
+                    <img src="images/about.png" alt="Davi Rodrigues">
+                </picture>
             </figure>
             <div class="about-text">
                 <p>Computer Science student at PUC Minas with experience in software automation, digital projects, and AI-assisted development. </p>
                 <p>Experience with Python and JavaScript on automation, data processing, NFT metadata, blockchain tools, and generative AI workflows. My previous experience also includes market analysis, risk assessment, digital marketing, and working with international teams.</p>
-                <p>My recent interests lies on software development, building practical projects and strengthening my skills in algorithms, data structures, Python, Java, and AI-assisted development.</p>
+                <p>My recent interests lie in software development, building practical projects, and strengthening my skills in algorithms, data structures, Python, Java, and AI-assisted development.</p>
             </div>
             <div class="divider">----------------------------------------------------------------------------------------------------</div>
         </div>
