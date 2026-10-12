@@ -45,7 +45,7 @@ function startTypewriter() {
     const el = document.getElementById('typewriter');
     if (!el) return;
 
-    const words = ['AI', 'System', 'Creative', 'Tech'];
+    const words = ['IA', 'Sistemas', 'Criativo', 'Código'];
     const typeMs = 90;
     const deleteMs = 50;
     const pauseMs = 900;
@@ -111,7 +111,7 @@ function getPrinterAudio() {
     if (printerAudio) return printerAudio;
     printerAudio = new Audio(PRINTER_SOUND_SRC);
     printerAudio.preload = 'none';
-    printerAudio.volume = 0.85;
+    printerAudio.volume = 0.2;
     return printerAudio;
 }
 
@@ -170,11 +170,11 @@ const printerStatus = document.getElementById('printer-status');
 const receipt = document.querySelector('.left-half');
 const phases = { 'powering-on': 600, 'warming-up': 1000, printing: 6200 };
 const phaseText = {
-    idle: 'Offline · ready when you are',
-    'powering-on': 'Powering on…',
-    'warming-up': 'Warming up · aligning the print head…',
-    printing: 'Printing your portfolio…',
-    completed: 'Print complete · enjoy the read.'
+    idle: 'Desligada · pronta quando você estiver',
+    'powering-on': 'Ligando…',
+    'warming-up': 'Aquecendo · alinhando a cabeça de impressão…',
+    printing: 'Imprimindo seu portfólio…',
+    completed: 'Impressão concluída · boa leitura.'
 };
 let printerState = 'idle';
 let scene3d = null;
@@ -269,7 +269,7 @@ function useStaticPrinter() {
     scene3d = null;
     staticMode = true;
     printerHost.classList.remove('has-webgl');
-    document.getElementById('printer-hint').textContent = 'Static preview · your portfolio is ready to print.';
+    document.getElementById('printer-hint').textContent = 'Prévia estática · seu portfólio está pronto para imprimir.';
     resizePrinter();
 }
 

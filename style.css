@@ -458,6 +458,11 @@ a:hover {
     overflow: visible;
 }
 
+.header-info .education-line .highlight {
+    display: inline-block;
+    white-space: nowrap;
+}
+
 .block-gap {
     margin-top: 0.65em;
 }
@@ -562,6 +567,15 @@ a.placeholder-img.has-shot:hover {
 
 .placeholder-img.medium-img.has-shot img {
     object-position: center 38%;
+}
+
+.placeholder-img.project-cover {
+    background-color: #f7f7f2;
+}
+
+.placeholder-img.project-cover img {
+    object-fit: contain;
+    object-position: center;
 }
 
 .placeholder-img.has-shot .img-label {
