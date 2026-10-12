@@ -1,6 +1,7 @@
 /* The canvas and HTML paper share a measured outlet, in CSS pixels. */
 .boot-screen { display: none; }
 body.printer-enabled {
+    --paper-tilt: 0deg;
     --machine-width: min(820px, 100vw);
     --outlet-width: min(634px, 82vw);
     --outlet-overlap: 75px;
@@ -150,13 +151,119 @@ body:not([data-printer-state="idle"]) .static-led { background: #759263; }
 [data-printer-state="completed"] .printer-controls { position: absolute !important; top: 10px !important; bottom: auto !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
 [data-printer-state="completed"] .printer-controls #printer-status { font-size: 10px; }
 [data-printer-state="completed"] .container { height: auto; overflow: visible; }
+[data-printer-state="completed"] .container { z-index: 4; }
+[data-printer-state="completed"] .left-half { top: 14px; }
+.printer-enabled .print-paper,
+.printer-enabled .print-paper.is-open { transform-origin: top center; transition: none; }
+.printer-enabled .print-paper.is-feeding { pointer-events: none; }
+.printer-enabled .print-paper.is-feeding .paper-close { pointer-events: auto; }
+.paper-shred-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    overflow: hidden;
+    pointer-events: none;
+    contain: strict;
+}
+.paper-shred-piece {
+    position: absolute;
+    overflow: hidden;
+    pointer-events: none;
+    will-change: transform, opacity;
+    box-shadow: 2px 4px 7px #343b2c20;
+}
+.printer-enabled .print-paper.shred-copy {
+    position: absolute;
+    margin: 0;
+    min-width: 0;
+    max-height: none;
+    visibility: visible;
+    translate: none;
+    transform-origin: top left;
+    pointer-events: none;
+    transition: none;
+    box-shadow: none;
+}
 .page-hidden *, .page-hidden *::before, .page-hidden *::after { animation-play-state: paused !important; }
+
+/* Papel térmico acetinado, na paleta mineral da impressora.
+   A superfície é só fundo: não distorce nem recobre a impressão. */
+.printer-enabled .left-half,
+.printer-enabled .print-paper {
+    --paper-color: #faf9f2;
+    --paper-edge-shading: linear-gradient(90deg, #747d6214, #ffffff50 1%, transparent 4%,
+        transparent 94%, #a1a58f0d 98%, #6b745b1a);
+    background-color: var(--paper-color);
+    background-image:
+        url("images/paper-grain.svg"),
+        var(--paper-edge-shading),
+        linear-gradient(180deg, #686f5512 0, transparent 60px,
+            transparent calc(100% - 90px), #ffffff80 calc(100% - 24px), #bbc0a51f),
+        repeating-linear-gradient(180deg, transparent 0 359px,
+            #858c7110 360px, #ffffff50 363px, transparent 368px, transparent 740px);
+    background-size: 180px 180px, 100% 100%, 100% 100%, 100% 100%;
+    border-radius: 1px 1px 2px 2px;
+    box-shadow:
+        inset 1px 0 0 #ffffffb3,
+        inset -1px 0 0 #777f6324,
+        0 0 0 1px #60694f1c,
+        1px 2px 2px #353d3026,
+        4px 7px 10px #353d301a,
+        12px 22px 38px -10px #353d3033;
+    translate: var(--drag-x, 0px) var(--drag-y, 0px);
+}
+/* Corte fino de lâmina, com a mesma superfície da folha, sem dentes grandes. */
+.printer-enabled .left-half::before {
+    height: 7px;
+    background-color: var(--paper-color);
+    background-image: url("images/paper-grain.svg"), var(--paper-edge-shading),
+        linear-gradient(#bbc0a51f, #bbc0a51f);
+    background-size: 180px 180px, 100% 100%, 100% 100%;
+    mask-size: 10px 7px;
+    pointer-events: none;
+}
+.printer-enabled .print-paper::before {
+    background-color: var(--paper-color);
+    background-image: url("images/paper-grain.svg"), var(--paper-edge-shading),
+        linear-gradient(#686f5512, #686f5512);
+    background-size: 180px 180px, 100% 100%, 100% 100%;
+    height: 7px;
+    bottom: calc(100% - 1px);
+    mask-image: var(--tear-up);
+    mask-repeat: repeat-x;
+    mask-size: 10px 7px;
+    pointer-events: none;
+}
+[data-printer-state="completed"] .left-half,
+[data-printer-state="completed"] .print-paper.is-open { cursor: grab; }
+[data-printer-state="completed"] .left-half .content { cursor: grab; }
+[data-printer-state="completed"] .left-half :is(p, h1, h2, li) { cursor: text; }
+[data-printer-state="completed"] .left-half .gallery,
+[data-printer-state="completed"] .left-half .placeholder-img { cursor: grab; }
+.printer-enabled .is-dragging {
+    cursor: grabbing !important;
+    user-select: none;
+    will-change: translate;
+    box-shadow: inset 1px 0 #ffffffb3, inset -1px 0 #777f6324,
+        0 0 0 1px #60694f1c, 3px 5px 6px #343b2c14,
+        8px 16px 22px #343b2c26, 20px 36px 54px -8px #343b2c33;
+}
+.paper-returning .container { pointer-events: none; }
+.paper-returning .boot-screen { animation: machine-return .48s ease-out both; }
+@keyframes machine-return {
+    from { opacity: .65; }
+    to { opacity: 1; }
+}
 @media (max-width: 640px) {
     .printer-caption { font-size: 8px; letter-spacing: .02em; }
     .printer-enabled .boot-screen { margin-top: clamp(24px, calc(38svh - 100px), 120px); }
     .printer-scene::before { filter: blur(12px); }
-    .printer-enabled .left-half { box-shadow: 3px 5px 12px #0002; }
+    .printer-enabled .left-half {
+        box-shadow: inset 1px 0 #ffffffb3, inset -1px 0 #777f6324,
+            0 0 0 1px #60694f1c, 1px 2px 2px #353d3026, 4px 8px 18px #353d3026;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
     .power-glyph { transition: none; }
+    .paper-returning .boot-screen { animation: none; }
 }

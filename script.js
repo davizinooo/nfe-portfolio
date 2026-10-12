@@ -41,7 +41,10 @@ if (document.fonts && document.fonts.ready) {
 }
 fitHeaderBox();
 
+let typewriterStarted = false;
 function startTypewriter() {
+    if (typewriterStarted) return;
+    typewriterStarted = true;
     const el = document.getElementById('typewriter');
     if (!el) return;
 
@@ -168,7 +171,7 @@ const powerButton = document.getElementById('power-button');
 const skipButton = document.getElementById('skip-animation');
 const printerStatus = document.getElementById('printer-status');
 const receipt = document.querySelector('.left-half');
-const phases = { 'powering-on': 600, 'warming-up': 1000, printing: 6200 };
+const phases = { 'powering-on': 420, 'warming-up': 700, printing: 4340 };
 const phaseText = {
     idle: 'Desligada · pronta quando você estiver',
     'powering-on': 'Ligando…',
@@ -216,7 +219,13 @@ function completePrint() {
     try { scene3d?.update('completed', 0); } catch { useStaticPrinter(); }
     // No animated translate/scale remains on the receipt; keep its original tilt.
     startTypewriter();
+    if (!motionPreference.matches) {
+        receipt.animate([{ transform: 'translateY(-14px)' }, { transform: 'translateY(0)' }],
+            { duration: 460, easing: 'cubic-bezier(.2,.75,.3,1)' });
+    }
     document.getElementById('portfolio').focus({ preventScroll: true });
+    // Último enquadramento: fim do recibo, sem uma rolagem contínua após imprimir.
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
 }
 
 function feedPaper() {
@@ -224,7 +233,12 @@ function feedPaper() {
     const progress = Math.min(1, elapsed / phases.printing);
     // A slight feed cadence, monotonic even at low frame rates.
     const feed = progress - Math.sin(progress * Math.PI * 24) * .0018;
-    stage.style.setProperty('--feed-height', `${Math.ceil(receiptHeight * feed)}px`);
+    const printedHeight = Math.ceil(receiptHeight * feed);
+    stage.style.setProperty('--feed-height', `${printedHeight}px`);
+    // Acompanha a ponta que está saindo e reserva espaço para os controles.
+    const paperTop = stage.getBoundingClientRect().top + window.scrollY;
+    const target = Math.max(0, paperTop + printedHeight - window.innerHeight + 112);
+    window.scrollTo({ top: target, behavior: 'instant' });
 }
 
 function tick(now) {
@@ -329,6 +343,18 @@ import('./printer-scene.js').then(({ createPrinter }) => {
 
 /* ---------- Papéis impressos (Skills, About me) ---------- */
 let paperLayer = 30;
+let extraPrint = null;
+
+function stopExtraPrint() {
+    if (!extraPrint) return;
+    const job = extraPrint;
+    extraPrint = null;
+    cancelAnimationFrame(job.frame);
+    job.animation?.cancel();
+    job.paper.classList.remove('is-feeding');
+    stopPrinterSound();
+    try { scene3d?.update('completed', 0); } catch { useStaticPrinter(); }
+}
 
 function paperTrigger(id) {
     return document.querySelector(`.paper-scrap[data-paper="${id}"]`);
@@ -340,8 +366,32 @@ function bringPaperForward(paper) {
     paper.style.zIndex = paperLayer;
 }
 
+function fitExtraPaper(paper) {
+    // Exibe a folha completa, inclusive em telas baixas, sem rolagem interna.
+    const width = paper.offsetWidth;
+    const height = paper.offsetHeight;
+    const availableHeight = paper.style.top ? innerHeight - parseFloat(paper.style.top) - 28 : innerHeight - 64;
+    const scale = Math.min(1, availableHeight / (height + width * .03),
+        (innerWidth - 32) / (width + height * .03));
+    paper.style.setProperty('--sheet-scale', Math.max(.1, scale));
+}
+
+window.addEventListener('resize', () => printPapers.forEach(paper => {
+    if (extraPrint?.paper === paper) stopExtraPrint();
+    paper.style.removeProperty('left');
+    paper.style.removeProperty('right');
+    paper.style.removeProperty('top');
+    paper.style.removeProperty('bottom');
+    paper.style.removeProperty('width');
+    fitExtraPaper(paper);
+    placePaper(paper, 0, 0);
+}));
+document.fonts?.ready.then(() => printPapers.forEach(fitExtraPaper));
+document.querySelector('.about-photo img')?.addEventListener('load', () => printPapers.forEach(fitExtraPaper));
+
 function openPaper(paper) {
     if (!paper) return;
+    if (extraPrint) closePaper(extraPrint.paper, { restoreFocus: false, quiet: true });
 
     if (MOBILE_SHEET.matches) {
         printPapers.forEach((other) => {
@@ -352,18 +402,62 @@ function openPaper(paper) {
     }
 
     bringPaperForward(paper);
+    // Traz a saída da mesma impressora ao topo antes de alimentar outra folha.
+    const outletDocumentY = stage.getBoundingClientRect().top + scrollY;
+    const outletTarget = Math.min(240, innerHeight * .3);
+    window.scrollTo({ top: Math.max(0, outletDocumentY - outletTarget), behavior: 'instant' });
+    const outletY = stage.getBoundingClientRect().top;
+    const width = Math.min(520, innerWidth - 32);
+    paper.style.width = `${width}px`;
+    paper.style.top = `${Math.max(40, outletY + 56)}px`;
+    paper.style.bottom = 'auto';
+    paper.style.right = 'auto';
+    fitExtraPaper(paper);
+    const scale = Number(paper.style.getPropertyValue('--sheet-scale'));
+    const direction = paper.id === 'about-paper' ? -1 : 1;
+    const side = Math.max(0, Math.min(innerWidth * .18, (innerWidth - width * scale) / 2 - 12));
+    paper.style.left = `${innerWidth / 2 + direction * side - width / 2}px`;
+    placePaper(paper, 0, 0);
     paper.classList.add('is-open');
     paper.setAttribute('aria-hidden', 'false');
     paper.inert = false;
     paperTrigger(paper.id)?.setAttribute('aria-expanded', 'true');
-    playPrinterSound(2000);
-
     const closeBtn = paper.querySelector('.paper-close');
-    requestAnimationFrame(() => closeBtn?.focus());
+    if (motionPreference.matches) {
+        closeBtn?.focus({ preventScroll: true });
+        return;
+    }
+    // Primeiro cresce a partir da saída; só depois desliza para baixo e para o lado.
+    const finalTransform = getComputedStyle(paper).transform;
+    const baseLeft = parseFloat(paper.style.left) + width * (1 - scale) / 2;
+    const sourceX = innerWidth / 2 - width * scale / 2 - baseLeft;
+    const sourceY = outletY - parseFloat(paper.style.top);
+    paper.classList.add('is-feeding');
+    const animation = paper.animate([
+        { translate: `${sourceX}px ${sourceY}px`, transform: `scale(${scale})`, clipPath: 'inset(0 0 100% 0)', offset: 0 },
+        { translate: `${sourceX}px ${sourceY}px`, transform: `scale(${scale})`, clipPath: 'inset(0 0 0% 0)', offset: .68 },
+        { translate: '0px 0px', transform: finalTransform, clipPath: 'inset(-12px -50px -50px -50px)', offset: 1 }
+    ], { duration: 1800, easing: 'cubic-bezier(.25,.65,.3,1)' });
+    const job = { paper, animation, frame: 0 };
+    extraPrint = job;
+    playPrinterSound(1250);
+    const start = performance.now();
+    const tickExtra = now => {
+        if (extraPrint !== job) return;
+        try { scene3d?.update('printing', now - start); } catch { useStaticPrinter(); }
+        job.frame = requestAnimationFrame(tickExtra);
+    };
+    job.frame = requestAnimationFrame(tickExtra);
+    animation.finished.then(() => {
+        if (extraPrint !== job) return;
+        stopExtraPrint();
+        closeBtn?.focus({ preventScroll: true });
+    }).catch(() => {});
 }
 
 function closePaper(paper, options = {}) {
     if (!paper) return;
+    if (extraPrint?.paper === paper) stopExtraPrint();
     const restoreFocus = options.restoreFocus !== false;
     const quiet = options.quiet === true;
 
@@ -372,7 +466,69 @@ function closePaper(paper, options = {}) {
     paper.inert = true;
     paperTrigger(paper.id)?.setAttribute('aria-expanded', 'false');
     if (!quiet) playPrinterSound(1000);
-    if (restoreFocus) paperTrigger(paper.id)?.focus();
+    if (restoreFocus) paperTrigger(paper.id)?.focus({ preventScroll: true });
+}
+
+function shredPaper(paper) {
+    if (!paper || !paper.classList.contains('is-open')) return;
+    if (extraPrint?.paper === paper) stopExtraPrint();
+    if (motionPreference.matches) {
+        closePaper(paper, { quiet: true });
+        return;
+    }
+    const bounds = paper.getBoundingClientRect();
+    const originalWidth = paper.offsetWidth;
+    const originalHeight = paper.offsetHeight;
+    const template = paper.cloneNode(true);
+    template.removeAttribute('id');
+    template.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    template.querySelector('.paper-close')?.remove();
+    template.classList.remove('is-open', 'is-feeding', 'is-dragging');
+    template.classList.add('shred-copy');
+    template.setAttribute('aria-hidden', 'true');
+    template.inert = true;
+    template.style.cssText = `width:${originalWidth}px;height:${originalHeight}px;top:0;right:auto;bottom:auto;left:0;transform:scale(${bounds.width / originalWidth},${bounds.height / originalHeight})`;
+    const layer = document.createElement('div');
+    layer.className = 'paper-shred-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    document.body.append(layer);
+    const fragment = (left, top, width, height, cropX = 0) => {
+        const strip = document.createElement('div');
+        strip.className = 'paper-shred-piece';
+        Object.assign(strip.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` });
+        const copy = template.cloneNode(true);
+        copy.style.left = `${-cropX}px`;
+        strip.append(copy);
+        layer.append(strip);
+        return strip;
+    };
+    const whole = fragment(bounds.left, bounds.top, bounds.width, bounds.height);
+    // Fecha o papel real imediatamente; a cópia visual faz a passagem pelo picotador.
+    closePaper(paper, { quiet: true });
+    const exit = whole.animate([
+        { transform: 'translateX(0) rotate(0deg)' },
+        { transform: `translateX(${innerWidth - bounds.left + 80}px) rotate(7deg)` }
+    ], { duration: 240, easing: 'cubic-bezier(.5,0,.9,.5)', fill: 'forwards' });
+    exit.finished.then(async () => {
+        whole.remove();
+        const count = 16;
+        const stripWidth = bounds.width / count;
+        const motions = [];
+        for (let i = 0; i < count; i++) {
+            const x = bounds.left + i * stripWidth;
+            const piece = fragment(x, bounds.top, Math.ceil(stripWidth - 2), bounds.height, i * stripWidth);
+            const flutter = Math.sin(i * 2.4) * 75;
+            const turn = Math.sin(i * 1.7) * 38;
+            const animation = piece.animate([
+                { transform: `translate(${innerWidth - x + 40}px, ${-50 + i * 5}px) rotate(8deg)`, opacity: 1, offset: 0 },
+                { transform: `translate(${flutter}px, ${45 + i * 4}px) rotate(${turn}deg)`, opacity: 1, offset: .55 },
+                { transform: `translate(${flutter - 65}px, ${innerHeight - bounds.top + 100}px) rotate(${turn * 2}deg)`, opacity: 0, offset: 1 }
+            ], { duration: 1000 + (i % 5) * 55, delay: i * 14, easing: 'cubic-bezier(.15,.6,.35,1)', fill: 'both' });
+            motions.push(animation.finished);
+        }
+        await Promise.allSettled(motions);
+        layer.remove();
+    }).catch(() => layer.remove());
 }
 
 function topOpenPaper() {
@@ -401,7 +557,7 @@ document.querySelectorAll('.paper-scrap[data-paper]').forEach((btn) => {
 document.querySelectorAll('.paper-close[data-close]').forEach((btn) => {
     btn.addEventListener('click', (event) => {
         event.stopPropagation();
-        closePaper(document.getElementById(btn.dataset.close));
+        shredPaper(document.getElementById(btn.dataset.close));
     });
 });
 
@@ -419,4 +575,133 @@ document.addEventListener('keydown', (event) => {
     const paper = topOpenPaper();
     if (!paper) return;
     closePaper(paper);
+});
+
+/* O movimento atua na folha inteira, sem transformar o conteúdo interno. */
+const paperPositions = new Map();
+let paperDrag = null;
+let returningPaper = false;
+let suppressPaperClickUntil = 0;
+
+function placePaper(paper, x, y) {
+    paperPositions.set(paper, { x, y });
+    paper.style.setProperty('--drag-x', `${x}px`);
+    paper.style.setProperty('--drag-y', `${y}px`);
+}
+
+function resetPrintedPortfolio() {
+    stopPrinterSound();
+    printPapers.forEach(paper => closePaper(paper, { restoreFocus: false, quiet: true }));
+    [receipt, ...printPapers].forEach(paper => placePaper(paper, 0, 0));
+    document.body.classList.remove('is-on', 'paper-returning');
+    stage.style.removeProperty('--feed-height');
+    stage.inert = true;
+    stage.setAttribute('aria-hidden', 'true');
+    powerButton.disabled = false;
+    skipButton.hidden = true;
+    returningPaper = false;
+    lastTime = 0;
+    setPrinterState('idle');
+    try { scene3d?.update('idle', 0); } catch { useStaticPrinter(); }
+    resizePrinter();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    powerButton.focus({ preventScroll: true });
+}
+
+function throwPrintedPaper(position, vx, vy) {
+    returningPaper = true;
+    document.body.classList.add('paper-returning');
+    printerStatus.textContent = 'Retornando à impressora…';
+    printPapers.forEach(paper => closePaper(paper, { restoreFocus: false, quiet: true }));
+    const duration = motionPreference.matches ? 0 : 480;
+    const distance = Math.max(window.innerWidth, window.innerHeight) * 1.4;
+    const speed = Math.hypot(vx, vy);
+    const animation = receipt.animate([
+        { translate: `${position.x}px ${position.y}px`, opacity: 1 },
+        { translate: `${position.x + vx / speed * distance}px ${position.y + vy / speed * distance}px`, opacity: 0 }
+    ], { duration, easing: 'cubic-bezier(.2,.65,.4,1)', fill: 'forwards' });
+    animation.finished.then(() => {
+        resetPrintedPortfolio();
+        animation.cancel();
+    });
+}
+
+[receipt, ...printPapers].forEach(paper => {
+    paper.addEventListener('dragstart', event => { if (paperDrag) event.preventDefault(); });
+    paper.addEventListener('pointerdown', event => {
+        if ((paper === receipt && event.pointerType !== 'mouse') || event.button !== 0 || returningPaper ||
+            printerState !== 'completed' || paper.classList.contains('is-feeding') || (paper !== receipt && !paper.classList.contains('is-open'))) return;
+        // Nas folhas extras, qualquer área não interativa é uma alça de arraste.
+        const excluded = paper === receipt
+            ? 'a, button, input, textarea, select, p, h1, h2, li, .header-links, .scrap-stack'
+            : 'a, button, input, textarea, select';
+        if (event.target.closest(excluded)) return;
+        if (paper !== receipt) event.preventDefault();
+        const position = paperPositions.get(paper) || { x: 0, y: 0 };
+        paperDrag = { paper, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+            origin: position, x: position.x, y: position.y, moved: false,
+            samples: [{ x: event.clientX, y: event.clientY, time: performance.now() }] };
+        paper.setPointerCapture(event.pointerId);
+        if (paper !== receipt) bringPaperForward(paper);
+    });
+    paper.addEventListener('pointermove', event => {
+        const drag = paperDrag;
+        if (!drag || drag.paper !== paper || drag.pointerId !== event.pointerId) return;
+        const dx = event.clientX - drag.startX;
+        const dy = event.clientY - drag.startY;
+        if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+        drag.moved = true;
+        paper.classList.add('is-dragging');
+        drag.x = drag.origin.x + dx;
+        drag.y = drag.origin.y + dy;
+        placePaper(paper, drag.x, drag.y);
+        const time = performance.now();
+        drag.samples.push({ x: event.clientX, y: event.clientY, time });
+        drag.samples = drag.samples.filter(sample => time - sample.time < 100);
+    });
+    const release = event => {
+        const drag = paperDrag;
+        if (!drag || drag.paper !== paper || drag.pointerId !== event.pointerId) return;
+        paperDrag = null;
+        paper.classList.remove('is-dragging');
+        if (paper.hasPointerCapture(event.pointerId)) paper.releasePointerCapture(event.pointerId);
+        if (!drag.moved) return;
+        suppressPaperClickUntil = performance.now() + 250;
+        const first = drag.samples[0];
+        const dt = Math.max(1, performance.now() - first.time);
+        const vx = (event.clientX - first.x) / dt;
+        const vy = (event.clientY - first.y) / dt;
+        const travel = Math.hypot(drag.x - drag.origin.x, drag.y - drag.origin.y);
+        if (event.type === 'pointerup' && paper === receipt && travel > 120 && Math.hypot(vx, vy) > 1.2) {
+            throwPrintedPaper(drag, vx, vy);
+        } else {
+            // Uma soltura comum ou cancelamento devolve a folha ao alcance.
+            if (event.type !== 'pointerup') {
+                placePaper(paper, drag.origin.x, drag.origin.y);
+            } else if (paper !== receipt) {
+                const bounds = paper.getBoundingClientRect();
+                const dx = Math.max(12 - bounds.left, Math.min(0, innerWidth - 12 - bounds.right));
+                const dy = Math.max(12 - bounds.top, Math.min(0, innerHeight - 12 - bounds.bottom));
+                placePaper(paper, drag.x + dx, drag.y + dy);
+            } else {
+                const xLimit = Math.min(window.innerWidth * .3, paper.offsetWidth * .4);
+                placePaper(paper, Math.max(-xLimit, Math.min(xLimit, drag.x)), Math.max(-100, Math.min(160, drag.y)));
+            }
+        }
+    };
+    paper.addEventListener('pointerup', release);
+    paper.addEventListener('pointercancel', release);
+    paper.addEventListener('lostpointercapture', release);
+    paper.addEventListener('click', event => {
+        if (performance.now() < suppressPaperClickUntil) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }, true);
+});
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !returningPaper) {
+        [receipt, ...printPapers].forEach(paper => placePaper(paper, 0, 0));
+    }
 });

@@ -25,7 +25,7 @@
     --header-box-width: 37rem;
     /* Dente + faixa sólida na base: a faixa cobre a emenda sem linha nos picos */
     --tear-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12' preserveAspectRatio='none'%3E%3Cpath fill='%23fff' d='M0 12V10L10 0l10 10v2H0z'/%3E%3C/svg%3E");
-    --tear-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12' preserveAspectRatio='none'%3E%3Cpath fill='%23fff' d='M0 0h20v2L10 12 0 2z'/%3E%3C/svg%3E");
+    --tear-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12' preserveAspectRatio='none'%3E%3Cpath fill='%23fff' d='M0 0h20v12L10 2 0 12z'/%3E%3C/svg%3E");
 }
 
 * {
@@ -145,18 +145,19 @@ a:focus-visible {
 /* Papéis impressos de baixo para cima, ao lado do recibo */
 .print-paper {
     position: fixed;
-    bottom: 0;
+    bottom: 16px;
     right: var(--paper-right);
     width: min(520px, calc(100vw - 48px));
     /* O conteúdo define o comprimento do papel, como no recibo principal */
     height: auto;
-    max-height: calc(100dvh - 28px);
+    max-height: none;
     z-index: 30;
     padding: 30px 30px 20px;
     background: var(--paper-color);
-    transform: translateY(108%) rotate(var(--open-tilt, 1.3deg));
+    transform: translateY(108%) rotate(var(--open-tilt, 1.3deg)) scale(var(--sheet-scale, 1));
     transform-origin: bottom center;
-    transition: transform 1s cubic-bezier(0.55, 0.05, 0.65, 0.4);
+    visibility: hidden;
+    transition: transform 1s cubic-bezier(0.55, 0.05, 0.65, 0.4), visibility 0s 1s;
     box-shadow: -8px -4px 20px rgba(0, 0, 0, 0.26);
     pointer-events: none;
     display: flex;
@@ -165,7 +166,7 @@ a:focus-visible {
 
 #skills-paper {
     --open-tilt: 1.2deg;
-    --paper-right: clamp(10px, 2vw, 40px);
+    --paper-right: clamp(16px, 2vw, 40px);
 }
 
 #about-paper {
@@ -177,9 +178,9 @@ a:focus-visible {
 }
 
 .print-paper.is-open {
-    /* Desce o bastante para a ponta inclinada do fim do papel sair da tela */
-    transform: translateY(14px) rotate(var(--open-tilt, 1.3deg));
-    transition: transform 2s cubic-bezier(0.3, 0.75, 0.3, 1);
+    transform: translateY(0) rotate(var(--open-tilt, 1.3deg)) scale(var(--sheet-scale, 1));
+    visibility: visible;
+    transition: transform 2s cubic-bezier(0.3, 0.75, 0.3, 1), visibility 0s;
     pointer-events: auto;
 }
 
@@ -199,6 +200,11 @@ a:focus-visible {
     cursor: pointer;
 }
 
+.paper-close:focus-visible {
+    outline: 2px solid var(--link-color);
+    outline-offset: 2px;
+}
+
 @media (hover: hover) {
     .paper-close:hover {
         color: #1a1a1a;
@@ -206,24 +212,20 @@ a:focus-visible {
 }
 
 .paper-content {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    flex: none;
+    overflow: visible;
     font-size: 1.15rem;
 }
 
-.paper-content::-webkit-scrollbar {
-    display: none;
+.print-paper {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
 }
 
 .about-photo {
     position: relative;
-    width: min(100%, calc(min(44vh, 340px) * 3 / 4));
+    width: min(100%, 135px);
     aspect-ratio: 3 / 4;
     margin: 0 auto 1.2rem;
     overflow: hidden;
@@ -265,9 +267,9 @@ a:focus-visible {
 }
 
 .about-text p {
-    font-size: 1.15rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
 }
 
 .skills-list {
@@ -380,6 +382,7 @@ a:hover {
 .typewriter-dev {
     display: inline-grid;
     flex-shrink: 0;
+    font-size: 1.1em;
     justify-items: end;
     align-items: baseline;
 }
@@ -563,6 +566,9 @@ a.placeholder-img.has-shot:hover {
     height: 100%;
     object-fit: cover;
     object-position: top center;
+    /* Uma camada contínua acompanha exatamente a inclinação da folha. */
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .placeholder-img.medium-img.has-shot img {
@@ -571,6 +577,13 @@ a.placeholder-img.has-shot:hover {
 
 .placeholder-img.project-cover {
     background-color: #f7f7f2;
+    height: auto;
+    aspect-ratio: 16 / 10;
+}
+
+.placeholder-img.large-img.has-shot {
+    height: auto;
+    aspect-ratio: 3 / 2;
 }
 
 .placeholder-img.project-cover img {
@@ -649,8 +662,9 @@ a.placeholder-img.has-shot:hover {
 
 .project-details p {
     font-size: 0.85rem;
-    line-height: 1.4;
-    margin-bottom: 0.5rem;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
     color: #4a4a4a;
 }
 
@@ -665,14 +679,70 @@ a.placeholder-img.has-shot:hover {
 
 .project-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
     margin-bottom: 3rem;
     min-width: 0;
 }
 
 .project-grid .project {
     min-width: 0;
+    display: block;
+    margin-bottom: 0;
+}
+
+.project-grid .project + .project {
+    border-top: 1px dashed #a5a697;
+    padding-top: 1.75rem;
+}
+
+.project-grid .project-cover {
+    height: auto;
+    aspect-ratio: auto;
+    margin-bottom: 1rem;
+}
+
+.project-grid .project-cover img {
+    height: auto;
+    object-fit: contain;
+}
+
+.project-details .project-kicker {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: #626957;
+    margin-bottom: 0.4rem;
+}
+
+.project-name {
+    font-size: 1.15rem;
+    line-height: 1.3;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.project-focus span {
+    display: block;
+    font-weight: 700;
+}
+
+.project-highlights {
+    padding-left: 1.1em;
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 0.9rem;
+}
+
+.project-highlights li + li {
+    margin-top: 0.35rem;
+}
+
+.project-details .credits {
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+    color: #626957;
 }
 
 .footer {
@@ -725,7 +795,7 @@ a.placeholder-img.has-shot:hover {
     letter-spacing: -0.12em;
     -webkit-text-stroke: 2.6px currentColor;
     paint-order: stroke fill;
-    transform: scaleY(0.82) scaleX(1.02);
+    transform: scaleY(0.82);
     transform-origin: center;
     white-space: nowrap;
     margin: 0.2rem 0 1.4rem;
@@ -743,10 +813,10 @@ a.placeholder-img.has-shot:hover {
 
 .barcode-wrapper {
     display: grid;
-    grid-template-columns: max-content;
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     justify-content: center;
-    width: max-content;
+    width: min(72%, 420px);
     max-width: 100%;
     min-width: 0;
     margin-inline: auto;
@@ -775,8 +845,8 @@ a.placeholder-img.has-shot:hover {
 }
 
 .barcode {
-    width: 110%;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
 }
@@ -786,29 +856,9 @@ a.placeholder-img.has-shot:hover {
     min-width: 0;
     box-sizing: border-box;
     height: 120px;
-    background: repeating-linear-gradient(
-        90deg,
-        var(--text-color),
-        var(--text-color) 3px,
-        transparent 3px,
-        transparent 6px,
-        var(--text-color) 6px,
-        var(--text-color) 7px,
-        transparent 7px,
-        transparent 9px,
-        var(--text-color) 9px,
-        var(--text-color) 14px,
-        transparent 14px,
-        transparent 15px,
-        var(--text-color) 15px,
-        var(--text-color) 17px,
-        transparent 17px,
-        transparent 20px,
-        var(--text-color) 20px,
-        var(--text-color) 25px,
-        transparent 25px,
-        transparent 28px
-    );
+    background: url("images/receipt-barcode.svg") center / 100% 100% no-repeat;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 /* Tablet / janela estreita: conteúdo ocupa a tela, metade vazia some */
@@ -841,11 +891,12 @@ a.placeholder-img.has-shot:hover {
     }
 
     #skills-paper {
-        --paper-right: 8px;
+        --paper-right: 16px;
     }
 
     #about-paper {
-        --paper-right: calc(8px + min(520px, calc(100vw - 20px)) * 0.4);
+        /* Mantém a defasagem, sem empurrar a folha para fora em paisagem. */
+        --paper-right: clamp(24px, calc(100vw - 544px), 216px);
     }
 
     .right-half {
@@ -946,6 +997,11 @@ a.placeholder-img.has-shot:hover {
         gap: 1rem;
     }
 
+    .project-grid .project {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
     .large-img {
         height: min(280px, 58vw);
     }
@@ -978,7 +1034,11 @@ a.placeholder-img.has-shot:hover {
     }
 
     #skills-paper {
-        --paper-right: 6px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        --paper-right: 16px;
+        --open-tilt: 0deg;
     }
 
     #about-paper {

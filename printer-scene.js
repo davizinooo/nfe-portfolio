@@ -100,8 +100,8 @@ export function createPrinter(host, onOutlet, onFailure) {
         camera.lookAt(0, .05, 0);
         camera.updateProjectionMatrix();
         camera.updateMatrixWorld();
-        // Match the original paper's slight inclination in screen space.
-        machine.rotation.z = THREE.MathUtils.degToRad(window.innerWidth <= 1024 ? .5 : 1.2);
+        // Saída horizontal, igual à folha HTML e à impressora estática.
+        machine.rotation.z = 0;
         machine.updateMatrixWorld(true);
         renderer.setSize(width, height, false);
         projectedLeft.copy(outletLeft).applyMatrix4(machine.matrixWorld).project(camera);
@@ -115,7 +115,7 @@ export function createPrinter(host, onOutlet, onFailure) {
         state = nextState;
         const feeding = state === 'printing';
         ledMaterial.emissiveIntensity = state === 'idle' ? 0 : state === 'warming-up' ? .35 + .15 * Math.sin(elapsed * .008) : .45;
-        lid.position.y = .82 + (state === 'powering-on' ? Math.sin(Math.min(elapsed / 600, 1) * Math.PI) * .025 : 0);
+        lid.position.y = .82 + (state === 'powering-on' ? Math.sin(Math.min(elapsed / 420, 1) * Math.PI) * .025 : 0);
         head.position.x = state === 'warming-up' ? Math.sin(elapsed * .004 - Math.PI / 2) * 3.1 : -3.2;
         roller.rotation.x = feeding ? elapsed * .012 : 0;
         render();
