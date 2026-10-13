@@ -107,6 +107,7 @@ function startTypewriter() {
 
 /* ---------- Som de impressora (efeito de recibo gravado) ---------- */
 const PRINTER_SOUND_SRC = 'sounds/printer-thermal.mp3';
+const PAPER_SOUND_VOLUME = 0.2;
 let printerAudio = null;
 let printerStopTimer = null;
 
@@ -114,9 +115,71 @@ function getPrinterAudio() {
     if (printerAudio) return printerAudio;
     printerAudio = new Audio(PRINTER_SOUND_SRC);
     printerAudio.preload = 'none';
-    printerAudio.volume = 0.2;
+    printerAudio.volume = PAPER_SOUND_VOLUME;
     return printerAudio;
 }
+
+// Motor e fibras do picotador, gerados localmente sem baixar áudio adicional.
+let shredAudioContext = null;
+let shredAudioBuffer = null;
+const shredSounds = new Set();
+
+function stopShredSound() {
+    for (const source of shredSounds) {
+        try { source.stop(); } catch { /* Já encerrado. */ }
+    }
+    shredSounds.clear();
+}
+
+function playShredSound() {
+    if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        shredAudioContext ||= new AudioContextClass();
+        const context = shredAudioContext;
+        // Chamado diretamente pelo clique para liberar o áudio em celulares.
+        const resumed = context.resume();
+        if (resumed) resumed.catch(() => {});
+        stopShredSound();
+        const duration = 1.3;
+        if (!shredAudioBuffer) {
+            shredAudioBuffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
+            const data = shredAudioBuffer.getChannelData(0);
+            let softenedNoise = 0;
+            for (let i = 0; i < data.length; i++) {
+                const t = i / context.sampleRate;
+                softenedNoise += ((Math.random() * 2 - 1) - softenedNoise) * 0.24;
+                const teeth = 0.65 + 0.35 * Math.sin(2 * Math.PI * 37 * t);
+                const motor = Math.sin(2 * Math.PI * 94 * t) * 0.12
+                    + Math.sin(2 * Math.PI * 188 * t) * 0.05;
+                data[i] = motor + softenedNoise * teeth * 0.65;
+            }
+        }
+        const source = context.createBufferSource();
+        const volume = context.createGain();
+        source.buffer = shredAudioBuffer;
+        source.connect(volume);
+        volume.connect(context.destination);
+        const start = context.currentTime + 0.24;
+        volume.gain.setValueAtTime(0, context.currentTime);
+        volume.gain.setValueAtTime(0, start);
+        volume.gain.linearRampToValueAtTime(PAPER_SOUND_VOLUME, start + 0.06);
+        volume.gain.setValueAtTime(PAPER_SOUND_VOLUME, start + duration - 0.22);
+        volume.gain.linearRampToValueAtTime(0, start + duration);
+        source.onended = () => {
+            shredSounds.delete(source);
+            source.disconnect();
+            volume.disconnect();
+        };
+        shredSounds.add(source);
+        source.start(start);
+    } catch { /* O efeito visual continua se o navegador bloquear o áudio. */ }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopShredSound();
+});
 
 function unlockPrinterAudio() {
     try {
@@ -218,7 +281,6 @@ function completePrint() {
     skipButton.hidden = true;
     try { scene3d?.update('completed', 0); } catch { useStaticPrinter(); }
     // No animated translate/scale remains on the receipt; keep its original tilt.
-    startTypewriter();
     if (!motionPreference.matches) {
         receipt.animate([{ transform: 'translateY(-14px)' }, { transform: 'translateY(0)' }],
             { duration: 460, easing: 'cubic-bezier(.2,.75,.3,1)' });
@@ -228,11 +290,15 @@ function completePrint() {
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
 }
 
+function paperFeedProgress(progress) {
+    return progress - Math.sin(progress * Math.PI * 24) * .0018;
+}
+
 function feedPaper() {
     if (printerState !== 'printing') return;
     const progress = Math.min(1, elapsed / phases.printing);
     // A slight feed cadence, monotonic even at low frame rates.
-    const feed = progress - Math.sin(progress * Math.PI * 24) * .0018;
+    const feed = paperFeedProgress(progress);
     const printedHeight = Math.ceil(receiptHeight * feed);
     stage.style.setProperty('--feed-height', `${printedHeight}px`);
     // Acompanha a ponta que está saindo e reserva espaço para os controles.
@@ -367,6 +433,10 @@ function bringPaperForward(paper) {
 }
 
 function fitExtraPaper(paper) {
+    if (paper.id === 'projects-paper') {
+        paper.style.setProperty('--sheet-scale', 1);
+        return;
+    }
     // Exibe a folha completa, inclusive em telas baixas, sem rolagem interna.
     const width = paper.offsetWidth;
     const height = paper.offsetHeight;
@@ -378,6 +448,14 @@ function fitExtraPaper(paper) {
 
 window.addEventListener('resize', () => printPapers.forEach(paper => {
     if (extraPrint?.paper === paper) stopExtraPrint();
+    if (paper.id === 'projects-paper' && paper.classList.contains('is-open')) {
+        const width = Math.min(receipt.offsetWidth, innerWidth - 32);
+        paper.style.width = `${width}px`;
+        paper.style.left = `${(innerWidth - width) / 2}px`;
+        paper.style.top = `${stage.getBoundingClientRect().top + scrollY + 14}px`;
+        placePaper(paper, 0, 0);
+        return;
+    }
     paper.style.removeProperty('left');
     paper.style.removeProperty('right');
     paper.style.removeProperty('top');
@@ -407,15 +485,17 @@ function openPaper(paper) {
     const outletTarget = Math.min(240, innerHeight * .3);
     window.scrollTo({ top: Math.max(0, outletDocumentY - outletTarget), behavior: 'instant' });
     const outletY = stage.getBoundingClientRect().top;
-    const width = Math.min(520, innerWidth - 32);
+    const isProjects = paper.id === 'projects-paper';
+    const width = isProjects ? Math.min(receipt.offsetWidth, innerWidth - 32) : Math.min(520, innerWidth - 32);
+    if (isProjects) paper.classList.add('is-open');
     paper.style.width = `${width}px`;
-    paper.style.top = `${Math.max(40, outletY + 56)}px`;
+    paper.style.top = `${isProjects ? outletDocumentY + 14 : Math.max(40, outletY + 56)}px`;
     paper.style.bottom = 'auto';
     paper.style.right = 'auto';
     fitExtraPaper(paper);
     const scale = Number(paper.style.getPropertyValue('--sheet-scale'));
     const direction = paper.id === 'about-paper' ? -1 : 1;
-    const side = Math.max(0, Math.min(innerWidth * .18, (innerWidth - width * scale) / 2 - 12));
+    const side = isProjects ? 0 : Math.max(0, Math.min(innerWidth * .18, (innerWidth - width * scale) / 2 - 12));
     paper.style.left = `${innerWidth / 2 + direction * side - width / 2}px`;
     placePaper(paper, 0, 0);
     paper.classList.add('is-open');
@@ -431,19 +511,33 @@ function openPaper(paper) {
     const finalTransform = getComputedStyle(paper).transform;
     const baseLeft = parseFloat(paper.style.left) + width * (1 - scale) / 2;
     const sourceX = innerWidth / 2 - width * scale / 2 - baseLeft;
-    const sourceY = outletY - parseFloat(paper.style.top);
+    const sourceY = (isProjects ? outletDocumentY : outletY) - parseFloat(paper.style.top);
     paper.classList.add('is-feeding');
-    const animation = paper.animate([
+    const projectDuration = phases.printing + 460;
+    const projectFrames = isProjects ? Array.from({ length: 145 }, (_, i) => ({
+        translate: `${sourceX}px ${sourceY}px`,
+        transform: `scale(${scale})`,
+        clipPath: `inset(0 0 ${(1 - paperFeedProgress(i / 144)) * 100}% 0)`,
+        offset: (i / 144) * phases.printing / projectDuration
+    })) : null;
+    if (projectFrames) projectFrames[projectFrames.length - 1].easing = 'cubic-bezier(.2,.75,.3,1)';
+    projectFrames?.push({
+        translate: '0px 0px', transform: finalTransform,
+        clipPath: 'inset(-12px -50px -50px -50px)', offset: 1,
+        easing: 'linear'
+    });
+    const animation = paper.animate(projectFrames || [
         { translate: `${sourceX}px ${sourceY}px`, transform: `scale(${scale})`, clipPath: 'inset(0 0 100% 0)', offset: 0 },
         { translate: `${sourceX}px ${sourceY}px`, transform: `scale(${scale})`, clipPath: 'inset(0 0 0% 0)', offset: .68 },
         { translate: '0px 0px', transform: finalTransform, clipPath: 'inset(-12px -50px -50px -50px)', offset: 1 }
-    ], { duration: 1800, easing: 'cubic-bezier(.25,.65,.3,1)' });
+    ], { duration: isProjects ? projectDuration : 1800, easing: isProjects ? 'linear' : 'cubic-bezier(.25,.65,.3,1)' });
     const job = { paper, animation, frame: 0 };
     extraPrint = job;
-    playPrinterSound(1250);
+    playPrinterSound(isProjects ? phases.printing : 1250);
     const start = performance.now();
     const tickExtra = now => {
         if (extraPrint !== job) return;
+        // A folha de projetos imprime sem conduzir a rolagem da página.
         try { scene3d?.update('printing', now - start); } catch { useStaticPrinter(); }
         job.frame = requestAnimationFrame(tickExtra);
     };
@@ -476,6 +570,7 @@ function shredPaper(paper) {
         closePaper(paper, { quiet: true });
         return;
     }
+    playShredSound();
     const bounds = paper.getBoundingClientRect();
     const originalWidth = paper.offsetWidth;
     const originalHeight = paper.offsetHeight;
@@ -590,6 +685,7 @@ function placePaper(paper, x, y) {
 }
 
 function resetPrintedPortfolio() {
+    stopShredSound();
     stopPrinterSound();
     printPapers.forEach(paper => closePaper(paper, { restoreFocus: false, quiet: true }));
     [receipt, ...printPapers].forEach(paper => placePaper(paper, 0, 0));
@@ -629,7 +725,7 @@ function throwPrintedPaper(position, vx, vy) {
 [receipt, ...printPapers].forEach(paper => {
     paper.addEventListener('dragstart', event => { if (paperDrag) event.preventDefault(); });
     paper.addEventListener('pointerdown', event => {
-        if ((paper === receipt && event.pointerType !== 'mouse') || event.button !== 0 || returningPaper ||
+        if (((paper === receipt || paper.id === 'projects-paper') && event.pointerType !== 'mouse') || event.button !== 0 || returningPaper ||
             printerState !== 'completed' || paper.classList.contains('is-feeding') || (paper !== receipt && !paper.classList.contains('is-open'))) return;
         // Nas folhas extras, qualquer área não interativa é uma alça de arraste.
         const excluded = paper === receipt
@@ -681,7 +777,9 @@ function throwPrintedPaper(position, vx, vy) {
             } else if (paper !== receipt) {
                 const bounds = paper.getBoundingClientRect();
                 const dx = Math.max(12 - bounds.left, Math.min(0, innerWidth - 12 - bounds.right));
-                const dy = Math.max(12 - bounds.top, Math.min(0, innerHeight - 12 - bounds.bottom));
+                const dy = paper.id === 'projects-paper'
+                    ? Math.max(48 - bounds.bottom, Math.min(0, innerHeight - 48 - bounds.top))
+                    : Math.max(12 - bounds.top, Math.min(0, innerHeight - 12 - bounds.bottom));
                 placePaper(paper, drag.x + dx, drag.y + dy);
             } else {
                 const xLimit = Math.min(window.innerWidth * .3, paper.offsetWidth * .4);

@@ -60,12 +60,6 @@
                         <div class="header-info">
                             <div class="header-row">
                                 <h1 class="heavy logo-name">Davi Rodrigues</h1>
-                                <span class="heavy typewriter-dev">
-                                    <span class="typewriter-sizer" aria-hidden="true">criativo</span>
-                                    <span class="typewriter-live">
-                                        <span id="typewriter"></span><span class="type-cursor" aria-hidden="true"></span>
-                                    </span>
-                                </span>
                             </div>
                             <p>Portfólio;</p>
                             <p>Desenvolvedor de Software;</p>
@@ -77,6 +71,7 @@
                             </p>
                         </div>
                         <div class="scrap-stack">
+                            <button class="paper-scrap link-highlight" type="button" data-paper="projects-paper" aria-expanded="false" aria-controls="projects-paper">Projetos</button>,
                             <button class="paper-scrap link-highlight" type="button" data-paper="skills-paper" aria-expanded="false" aria-controls="skills-paper">Habilidades</button>, <button class="paper-scrap link-highlight" type="button" data-paper="about-paper" aria-expanded="false" aria-controls="about-paper">Sobre_mim</button>;
                         </div>
                         <div class="header-links">
@@ -89,11 +84,57 @@
                     </header>
                 </div>
 
+
+            <footer class="footer">
+                <section class="receipt-order" aria-label="Cupom de apresentação do portfólio">
+                    <p class="receipt-order-title">CUPOM DE APRESENTAÇÃO</p>
+                    <p class="receipt-order-note">DOCUMENTO ILUSTRATIVO · SEM VALOR FISCAL</p>
+                    <table class="receipt-items">
+                        <thead><tr><th scope="col">ITEM / DESCRIÇÃO</th><th scope="col">QTD.</th><th scope="col">VALOR</th></tr></thead>
+                        <tbody>
+                            <tr><td>01 Projetos selecionados</td><td>3</td><td>R$ 0,00</td></tr>
+                            <tr><td>02 Habilidades técnicas</td><td>1</td><td>R$ 0,00</td></tr>
+                            <tr><td>03 Sobre mim</td><td>1</td><td>R$ 0,00</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="receipt-total"><span>TOTAL</span><span>R$ 0,00</span></div>
+                    <div class="receipt-payment"><span>FORMA DE PAGAMENTO</span><span>Sua atenção :)</span></div>
+                    <p class="receipt-order-note">Consulta gratuita · valores ilustrativos</p>
+                </section>
+                <div class="footer-specs">
+                    <div class="spec-row">
+                        <span>IMPRESSO COM SUCESSO</span>
+                    </div>
+                    <p class="receipt-thanks">OBRIGADO</p>
+                    <div class="barcode-section">
+                        <div class="barcode-wrapper">
+                            <div class="numbers">
+                                01001000 01001001
+                            </div>
+                            <div class="barcode">
+                                <div class="barcode-lines"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+        </div>
+
+        <!-- Metade Direita Vazia -->
+        <div class="site-half right-half"></div>
+    </div>
+
+    <!-- Papel de skills: impresso de baixo para cima -->
+    <aside id="projects-paper" class="print-paper projects-paper" aria-hidden="true" inert>
+        <button class="paper-close" type="button" data-close="projects-paper" aria-label="Fechar projetos">X</button>
+        <div class="paper-content">
+            <div class="divider">----------------------------------------------------------------------------------------------------</div>
+            <h2 class="paper-title">PROJETOS<span class="title-cursor" aria-hidden="true">_</span></h2>
             <section class="gallery">
-                <h2 class="projetos-title">Projetos;</h2>
                 <div class="project project-large">
                     <div class="placeholder-img large-img has-shot">
-                        <img src="images/nfekide-cover.png" alt="Capa do NfeKide: interface de conferência de NF-e, formação de preços e integração com XML, Gmail e SEFAZ">
+                        <img src="images/nfekide-cover.png" width="1536" height="1024" alt="Capa do NfeKide: interface de conferência de NF-e, formação de preços e integração com XML, Gmail e SEFAZ">
                     </div>
                     <div class="project-details">
                         <p class="project-kicker">APLICATIVO DESKTOP · VAREJO</p>
@@ -109,7 +150,7 @@
                 <div class="project-grid">
                     <div class="project">
                         <div class="placeholder-img medium-img has-shot project-cover">
-                            <img src="images/localiza-cover.webp" alt="Protótipo da OctaBytes para Localiza Assinatura: resumos do plano, widgets de quilometragem e alertas do veículo" loading="lazy">
+                            <img src="images/localiza-cover.webp" width="1400" height="788" alt="Protótipo da OctaBytes para Localiza Assinatura: resumos do plano, widgets de quilometragem e alertas do veículo" loading="lazy">
                         </div>
                         <div class="project-details">
                             <p class="project-kicker">HACKATHON · RUPTURA 2026</p>
@@ -125,7 +166,7 @@
                     </div>
                     <div class="project">
                         <div class="placeholder-img medium-img has-shot project-cover">
-                            <img src="images/web3-projects.webp" alt="Resultados de vários projetos Web3: mais de US$ 2 milhões em volume e 4.800 detentores únicos" loading="lazy">
+                            <img src="images/web3-projects.webp" width="1672" height="941" alt="Resultados de vários projetos Web3: mais de US$ 2 milhões em volume e 4.800 detentores únicos" loading="lazy">
                         </div>
                         <div class="project-details">
                             <p class="project-kicker">BITCOIN · ETHEREUM</p>
@@ -142,36 +183,10 @@
                 </div>
                 
             </section>
-
-            <footer class="footer">
-                <div class="divider">----------------------------------------------------------------------------------------------------</div>
-                <div class="footer-specs">
-                    <div class="spec-row">
-                        <span>TRANSAÇÃO CONCLUÍDA COM SUCESSO</span>
-                    </div>
-                    
-                    <p class="receipt-thanks">OBRIGADO</p>
-                    <div class="barcode-section">
-                        <div class="barcode-wrapper">
-                            <div class="numbers">
-                                01001000 01001001
-                            </div>
-                            <div class="barcode">
-                                <div class="barcode-lines"></div>
-                            </div>
-                        </div>
-                        <p class="receipt-attention">AGRADEÇO PELA SUA ATENÇÃO</p>
-                    </div>
-                </div>
-            </footer>
-        </main>
+            <div class="divider">----------------------------------------------------------------------------------------------------</div>
         </div>
+    </aside>
 
-        <!-- Metade Direita Vazia -->
-        <div class="site-half right-half"></div>
-    </div>
-
-    <!-- Papel de skills: impresso de baixo para cima -->
     <aside id="skills-paper" class="print-paper" aria-hidden="true" inert>
         <button class="paper-close" type="button" data-close="skills-paper" aria-label="Fechar habilidades">X</button>
         <div class="paper-content">

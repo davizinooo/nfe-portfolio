@@ -114,12 +114,14 @@ body {
 .scrap-stack {
     font-size: 2.2rem;
     margin-bottom: 1.2rem;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.7;
     max-width: 100%;
     overflow: hidden;
 }
 
 .paper-scrap {
+    white-space: nowrap;
     border: none;
     font-family: inherit;
     cursor: pointer;
@@ -746,8 +748,37 @@ a.placeholder-img.has-shot:hover {
 }
 
 .footer {
-    margin-top: 4rem;
+    margin-top: 1.5rem;
 }
+
+.receipt-order { font-size: clamp(.72rem, 2.6vw, .95rem); font-weight: 400; line-height: 1.5; margin-bottom: 1.8rem; }
+.receipt-order-title { text-align: center; font-size: 1.1em; font-weight: 700; letter-spacing: .08em; }
+.receipt-order-note { text-align: center; font-size: .8em; color: #626957; margin: .5rem 0; }
+.receipt-items { width: 100%; border-collapse: collapse; margin: 1rem 0; font: inherit; }
+.receipt-items thead { border-block: 1px dashed #999d8b; }
+.receipt-items th { font-size: .85em; font-weight: 700; padding-block: .6rem; text-align: left; }
+.receipt-items td { padding-block: .4rem; }
+.receipt-items th:nth-child(2), .receipt-items td:nth-child(2) { text-align: center; padding-inline: .4rem; }
+.receipt-items th:last-child, .receipt-items td:last-child { text-align: right; white-space: nowrap; }
+.receipt-total, .receipt-payment { display: flex; justify-content: space-between; gap: .7rem; }
+.receipt-total { border-top: 1px dashed #999d8b; padding-top: .75rem; font-size: 1.5em; font-weight: 700; }
+.receipt-payment { font-size: .85em; margin-top: .65rem; }
+
+/* Um recibo longo: leitura pela página, nunca por uma janela interna. */
+.printer-enabled #projects-paper {
+    position: absolute;
+    display: none;
+    --open-tilt: 0deg;
+    width: var(--outlet-width);
+    max-width: calc(100vw - 32px);
+    padding: 30px 20px 20px;
+    touch-action: pan-y;
+}
+.printer-enabled #projects-paper.is-open { display: flex; }
+#projects-paper .gallery { min-width: 0; }
+#projects-paper .paper-content { overflow-wrap: anywhere; }
+#projects-paper .paper-close { position: sticky; align-self: flex-end; top: 12px; margin-bottom: -36px; background: var(--paper-color); }
+#projects-paper .project-grid { margin-bottom: 0; }
 
 .footer-specs {
     font-size: 2.2rem;
